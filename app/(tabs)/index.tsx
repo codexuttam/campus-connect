@@ -1,249 +1,249 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Sparkles, ArrowRight, Bell, Calendar, Users, Bookmark } from 'lucide-react-native';
+import React, { useState } from 'react';
 import {
-  AppText,
-  AppCard,
-  AppBadge,
-  AppAvatar,
-  AppButton,
-  IconButton,
-} from '../../components/ui';
+  View,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Sparkles, Plus, AlertCircle } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
+import { AppText } from '../../components/ui/AppText';
+import { AppCard } from '../../components/ui/AppCard';
+import { AppButton } from '../../components/ui/AppButton';
+import { LoadingIndicator } from '../../components/ui/LoadingIndicator';
+import {
+  HomeHeader,
+  FeedFilter,
+  StoryList,
+  StoryViewer,
+  PostCard,
+  SuggestedUserSection,
+  TrendingSection,
+} from '../../features/feed/components';
+import {
+  useCampusFeed,
+  useStories,
+  useSuggestedConnections,
+  useTrendingTopics,
+  useLikePost,
+  useSavePost,
+  useDeletePost,
+  useToggleConnect,
+  useRecordStoryView,
+  useReportPost,
+} from '../../features/feed/hooks/useFeed';
+import { Post, PostCategory } from '../../features/feed/types';
+import { useAuth } from '../../hooks/useAuth';
 import { theme } from '../../theme';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const [feedFilter, setFeedFilter] = useState<'for-you' | 'following'>('for-you');
+  const [selectedCategory, setSelectedCategory] = useState<PostCategory>('all');
+  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+
+  // Queries
+  const {
+    data: feedData,
+    isLoading: isFeedLoading,
+    isRefetching: isFeedRefetching,
+    refetch: refetchFeed,
+    error: feedError,
+  } = useCampusFeed({ filter: feedFilter, category: selectedCategory });
+
+  const { data: stories = [] } = useStories();
+  const { data: suggestions = [] } = useSuggestedConnections();
+  const { data: trending = [] } = useTrendingTopics();
+
+  // Mutations
+  const likeMutation = useLikePost();
+  const saveMutation = useSavePost();
+  const deleteMutation = useDeletePost();
+  const connectMutation = useToggleConnect();
+  const storyViewMutation = useRecordStoryView();
+  const reportMutation = useReportPost();
+
+  const posts = feedData?.posts || [];
+
+  const handleRefresh = async () => {
+    await refetchFeed();
+  };
+
+  const handlePostPress = (postId: string) => {
+    router.push({
+      pathname: '/post/[id]',
+      params: { id: postId },
+    });
+  };
 
   return (
-    <ScreenContainer scrollable safeTop padded={false}>
-      {/* Compact University Editorial Header */}
-      <View style={styles.header}>
-        <View>
-          <AppText variant="captionMedium" color="secondary" style={styles.kicker}>
-            CAMPUS CONNECT
-          </AppText>
-          <AppText variant="h1" serif color="primary">
-            The Yard
-          </AppText>
-        </View>
+    <ScreenContainer safeTop padded={false} style={styles.container}>
+      {/* Top Campus Header */}
+      <HomeHeader
+        campusName={user?.collegeName ? `${user.collegeName} · The Yard` : 'Oxford · The Yard'}
+        onSearchPress={() => router.push('/search')}
+        onNotificationsPress={() => router.push('/notifications')}
+        hasUnreadNotifications
+      />
 
-        <View style={styles.headerActions}>
-          <IconButton
-            icon={
-              <Bell
-                size={theme.icons.sizes.header}
-                color={theme.colors.textPrimary}
-                strokeWidth={theme.icons.strokeWidth.default}
-              />
-            }
-            variant="surface"
-            size="sm"
-            accessibilityLabel="Notifications"
+      {/* Main Feed FlatList */}
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFeedRefetching}
+            onRefresh={handleRefresh}
+            tintColor={theme.colors.maroon}
+            colors={[theme.colors.maroon]}
           />
-          <AppAvatar name="Amara Patel" size="sm" style={styles.avatarSpacing} />
-        </View>
-      </View>
+        }
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.headerSections}>
+            {/* 1. Feed Segmented Tabs & Category Pills */}
+            <FeedFilter
+              activeTab={feedFilter}
+              onTabChange={setFeedFilter}
+              activeCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
 
-      <View style={styles.body}>
-        {/* Foundation Notice Card */}
-        <AppCard variant="maroon" padding="md" style={styles.foundationCard}>
-          <View style={styles.cardHeaderRow}>
-            <AppBadge label="FOUNDATION V1.0" variant="maroon" size="sm" dot />
-            <Sparkles size={16} color={theme.colors.maroon} />
-          </View>
-          <AppText variant="h3" color="primary" style={styles.foundationTitle}>
-            Design System & Architecture Active
-          </AppText>
-          <AppText variant="bodySmall" color="secondary" style={styles.foundationDesc}>
-            Warm university paper aesthetic, centralized theme tokens, strict TypeScript, and 5-tab navigation shell.
-          </AppText>
-          <View style={styles.showcaseButtonRow}>
-            <AppButton
-              title="Open Component Showcase"
-              variant="primary"
-              size="sm"
-              trailingIcon={
-                <ArrowRight
-                  size={14}
-                  color={theme.colors.textInverse}
-                  strokeWidth={2}
-                />
-              }
-              onPress={() => router.push('/showcase')}
+            {/* 2. Campus Updates / Stories */}
+            <StoryList
+              stories={stories}
+              onSelectStory={(index) => setActiveStoryIndex(index)}
+              onAddStoryPress={() => router.push('/create-post')}
+              currentUserName={user?.fullName || 'You'}
+            />
+
+            {/* 3. Trending on Campus Discussions */}
+            <TrendingSection
+              topics={trending}
+              onSelectTopic={(topic) => {
+                // If trending topic has matching category or tag
+                router.push('/search');
+              }}
             />
           </View>
-        </AppCard>
+        }
+        renderItem={({ item, index }) => (
+          <View key={item.id} style={styles.postItemWrapper}>
+            <PostCard
+              post={item}
+              onPress={() => handlePostPress(item.id)}
+              onLike={() => likeMutation.mutate(item.id)}
+              onSave={() => saveMutation.mutate(item.id)}
+              onDelete={() => deleteMutation.mutate(item.id)}
+              onReport={(reason) => reportMutation.mutate({ postId: item.id, reason })}
+            />
 
-        {/* Visual-First Sample Showcase Cards (70% visual / 30% text aesthetic demonstration) */}
-        <View style={styles.sectionHeader}>
-          <AppText variant="captionMedium" color="secondary" style={styles.sectionTitle}>
-            CURATED DISCOVERY
-          </AppText>
-          <AppBadge label="PREVIEW" variant="neutral" size="sm" />
-        </View>
-
-        {/* Sample Card 1: Community Spotlight */}
-        <AppCard variant="default" padding="none" style={styles.sampleCard}>
-          {/* Visual Container */}
-          <View style={[styles.visualArea, { backgroundColor: theme.colors.surface }]}>
-            <View style={styles.floatingBadgeRow}>
-              <AppBadge label="ACADEMIC" variant="olive" size="sm" />
-              <IconButton
-                icon={
-                  <Bookmark
-                    size={16}
-                    color={theme.colors.textSecondary}
-                    strokeWidth={theme.icons.strokeWidth.default}
-                  />
-                }
-                variant="ghost"
+            {/* Intersperse Suggested Connections naturally after the 2nd post */}
+            {index === 1 && suggestions.length > 0 && (
+              <SuggestedUserSection
+                suggestions={suggestions}
+                onToggleConnect={(id) => connectMutation.mutate(id)}
+              />
+            )}
+          </View>
+        )}
+        ListEmptyComponent={
+          isFeedLoading ? (
+            <View style={styles.centerContainer}>
+              <LoadingIndicator size="small" label="Loading campus discussions..." />
+            </View>
+          ) : feedError ? (
+            <View style={styles.centerContainer}>
+              <AlertCircle size={24} color={theme.colors.error} />
+              <AppText variant="bodySmall" color="error" style={styles.emptyText}>
+                Failed to load feed. Pull down to refresh.
+              </AppText>
+              <AppButton
+                title="Retry"
+                variant="outline"
                 size="sm"
-                accessibilityLabel="Save item"
+                onPress={() => refetchFeed()}
+                style={styles.retryButton}
               />
             </View>
-            <View style={styles.visualGraphicCenter}>
-              <Users size={44} color={theme.colors.olive} strokeWidth={1.5} />
-            </View>
-          </View>
-
-          {/* Minimal Text Container (30%) */}
-          <View style={styles.cardContent}>
-            <AppText variant="h3" serif color="primary" numberOfLines={1}>
-              Oxford Debate Society
-            </AppText>
-            <View style={styles.cardMetaRow}>
-              <AppText variant="caption" color="secondary">
-                Thursday · Merton Hall
+          ) : (
+            <View style={styles.emptyCard}>
+              <Sparkles size={28} color={theme.colors.maroon} />
+              <AppText variant="h3" serif color="primary" align="center" style={styles.emptyTitle}>
+                Quiet in This Circle
               </AppText>
-              <AppBadge label="128 Members" variant="neutral" size="sm" />
-            </View>
-          </View>
-        </AppCard>
-
-        {/* Sample Card 2: Campus Event */}
-        <AppCard variant="default" padding="none" style={styles.sampleCard}>
-          <View style={[styles.visualArea, { backgroundColor: theme.colors.cardHover }]}>
-            <View style={styles.floatingBadgeRow}>
-              <AppBadge label="GATHERING" variant="maroon" size="sm" />
-              <IconButton
-                icon={
-                  <Bookmark
-                    size={16}
-                    color={theme.colors.textSecondary}
-                    strokeWidth={theme.icons.strokeWidth.default}
-                  />
-                }
-                variant="ghost"
+              <AppText variant="bodySmall" color="secondary" align="center" style={styles.emptyText}>
+                No posts found for this category. Start the dialogue or explore other academic circles.
+              </AppText>
+              <AppButton
+                title="Create a Post"
+                variant="primary"
                 size="sm"
-                accessibilityLabel="Save item"
+                onPress={() => router.push('/(tabs)/create')}
+                style={styles.createButton}
               />
             </View>
-            <View style={styles.visualGraphicCenter}>
-              <Calendar size={44} color={theme.colors.maroon} strokeWidth={1.5} />
-            </View>
-          </View>
+          )
+        }
+      />
 
-          <View style={styles.cardContent}>
-            <AppText variant="h3" serif color="primary" numberOfLines={1}>
-              Founders Coffee & Critique
-            </AppText>
-            <View style={styles.cardMetaRow}>
-              <AppText variant="caption" color="secondary">
-                Friday 10:00 AM · The Quad
-              </AppText>
-              <AppBadge label="Open to All" variant="olive" size="sm" />
-            </View>
-          </View>
-        </AppCard>
-      </View>
+      {/* Fullscreen Story Viewer */}
+      <StoryViewer
+        visible={activeStoryIndex !== null}
+        stories={stories}
+        initialIndex={activeStoryIndex ?? 0}
+        onClose={() => setActiveStoryIndex(null)}
+        onRecordView={(id) => storyViewMutation.mutate(id)}
+      />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.screenPadding,
-    paddingTop: theme.spacing.sm,
-    paddingBottom: theme.spacing.md,
+  container: {
     backgroundColor: theme.colors.background,
   },
-  kicker: {
-    letterSpacing: theme.letterSpacing.wider,
-    marginBottom: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarSpacing: {
-    marginLeft: theme.spacing.sm,
-  },
-  body: {
-    paddingHorizontal: theme.spacing.screenPadding,
+  listContent: {
     paddingBottom: theme.spacing.massive,
   },
-  foundationCard: {
-    marginBottom: theme.spacing.xl,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  headerSections: {
     marginBottom: theme.spacing.sm,
   },
-  foundationTitle: {
-    marginBottom: theme.spacing.xs,
+  postItemWrapper: {
+    paddingHorizontal: theme.spacing.screenPadding,
   },
-  foundationDesc: {
-    marginBottom: theme.spacing.md,
-    lineHeight: 18,
-  },
-  showcaseButtonRow: {
-    alignSelf: 'flex-start',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: theme.spacing.md,
-  },
-  sectionTitle: {
-    letterSpacing: theme.letterSpacing.wider,
-  },
-  sampleCard: {
-    marginBottom: theme.spacing.lg,
-  },
-  visualArea: {
-    height: 140,
-    width: '100%',
-    padding: theme.spacing.md,
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderSubtle,
-  },
-  floatingBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  visualGraphicCenter: {
+  centerContainer: {
+    paddingVertical: theme.spacing.massive,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: theme.spacing.sm,
   },
-  cardContent: {
-    padding: theme.spacing.cardPadding,
-  },
-  cardMetaRow: {
-    flexDirection: 'row',
+  emptyCard: {
+    marginHorizontal: theme.spacing.screenPadding,
+    marginVertical: theme.spacing.xxxl,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xl,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: theme.spacing.xs + 2,
+  },
+  emptyTitle: {
+    marginTop: theme.spacing.md,
+    marginBottom: 4,
+  },
+  emptyText: {
+    marginTop: 4,
+    maxWidth: 260,
+    lineHeight: 18,
+  },
+  retryButton: {
+    marginTop: theme.spacing.md,
+  },
+  createButton: {
+    marginTop: theme.spacing.lg,
   },
 });
-

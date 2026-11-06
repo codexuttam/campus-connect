@@ -1,0 +1,325 @@
+import {
+  Post,
+  Story,
+  ConnectionSuggestion,
+  TrendingTopic,
+  Comment,
+  UserSummary,
+} from '../types';
+
+export const CURRENT_USER: UserSummary = {
+  id: 'usr_me',
+  fullName: 'Julian Vance',
+  collegeName: 'University of Oxford',
+  courseOrBranch: 'Computer Science & Philosophy',
+  graduationYear: '2026',
+  avatarPreset: 'crimson',
+  isVerified: true,
+};
+
+export const MOCK_USERS: Record<string, UserSummary> = {
+  amara: {
+    id: 'usr_amara',
+    fullName: 'Amara Patel',
+    collegeName: 'Lady Margaret Hall',
+    courseOrBranch: 'Economics & Management',
+    graduationYear: '2026',
+    avatarPreset: 'olive',
+    isVerified: true,
+  },
+  leo: {
+    id: 'usr_leo',
+    fullName: 'Leo Zhang',
+    collegeName: "St. John's College",
+    courseOrBranch: 'Engineering Science',
+    graduationYear: '2025',
+    avatarPreset: 'espresso',
+    isVerified: true,
+  },
+  elena: {
+    id: 'usr_elena',
+    fullName: 'Elena Rostova',
+    collegeName: 'Merton College',
+    courseOrBranch: 'Law & Jurisprudence',
+    graduationYear: '2026',
+    avatarPreset: 'slate',
+    isVerified: true,
+  },
+  tariq: {
+    id: 'usr_tariq',
+    fullName: 'Tariq Al-Mansoor',
+    collegeName: 'Christ Church',
+    courseOrBranch: 'Medicine & Health',
+    graduationYear: '2027',
+    avatarPreset: 'olive',
+    isVerified: true,
+  },
+  ai_society: {
+    id: 'org_ai_soc',
+    fullName: 'Oxford AI & Ethics Society',
+    collegeName: 'University Society',
+    courseOrBranch: 'Interdisciplinary Union',
+    isVerified: true,
+  },
+  yard_bulletin: {
+    id: 'org_yard_bulletin',
+    fullName: 'The Yard Campus Board',
+    collegeName: 'Student Directory Board',
+    courseOrBranch: 'Campus Governance',
+    isVerified: true,
+  },
+};
+
+export const INITIAL_STORIES: Story[] = [
+  {
+    id: 'story_1',
+    author: MOCK_USERS.ai_society,
+    type: 'club',
+    title: 'Guest Colloquium',
+    textSnippet: 'Tonight at 7:00 PM: "Epistemic Limits of Large Reasoning Models" in the Examination Schools. Tea from 6:30.',
+    bgColor: '#702D3B',
+    createdAt: '25m ago',
+    expiresAt: '23h',
+    isViewed: false,
+  },
+  {
+    id: 'story_2',
+    author: MOCK_USERS.amara,
+    type: 'student',
+    title: 'Study Circle',
+    textSnippet: 'Revision table set up in Upper Reading Room, Radcliffe Camera. 4 seats open for macroeconomics problem sets.',
+    bgColor: '#737B4B',
+    createdAt: '1h ago',
+    expiresAt: '23h',
+    isViewed: false,
+  },
+  {
+    id: 'story_3',
+    author: MOCK_USERS.leo,
+    type: 'student',
+    title: 'Robotics Lab',
+    textSnippet: 'Final autonomous drone test flight passed in the South Parks field. Hardware sprint concluded.',
+    bgColor: '#302B28',
+    createdAt: '3h ago',
+    expiresAt: '21h',
+    isViewed: false,
+  },
+  {
+    id: 'story_4',
+    author: MOCK_USERS.elena,
+    type: 'student',
+    title: 'Moot Court',
+    textSnippet: 'Chambers finals commence at 2 PM. Public gallery seating open in the St Cross Building.',
+    bgColor: '#4F6C7D',
+    createdAt: '5h ago',
+    expiresAt: '19h',
+    isViewed: true,
+  },
+  {
+    id: 'story_5',
+    author: MOCK_USERS.yard_bulletin,
+    type: 'society',
+    title: 'Library Hours',
+    textSnippet: 'Bodleian central complex extends 24-hour reading rooms for 5th-week collections.',
+    bgColor: '#82796B',
+    createdAt: '7h ago',
+    expiresAt: '17h',
+    isViewed: true,
+  },
+];
+
+export const INITIAL_POSTS: Post[] = [
+  {
+    id: 'post_1',
+    author: MOCK_USERS.amara,
+    content:
+      'The morning mist clearing over the Radcliffe Camera before 8:00 AM lectures. There is genuinely nothing quite like walking across the cobbles when the campus is completely silent.\n\nPreparing for the industrial organisation seminar with Professor Davies this afternoon.',
+    category: 'campus-life',
+    visibility: 'campus',
+    createdAt: '35m ago',
+    likesCount: 24,
+    commentsCount: 6,
+    isLiked: false,
+    isSaved: true,
+    images: [
+      {
+        id: 'img_1',
+        url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+        aspectRatio: 1.5,
+      },
+    ],
+  },
+  {
+    id: 'post_2',
+    author: MOCK_USERS.ai_society,
+    content:
+      'Call for Submissions: The Michaelmas Term Undergraduate Philosophy & Computing Paper Prize is now open for abstract proposals.\n\nTopics include verifiable reasoning bounds, mechanistic interpretability in transformer heads, and algorithmic governance.',
+    category: 'academic',
+    visibility: 'campus',
+    createdAt: '2h ago',
+    likesCount: 58,
+    commentsCount: 12,
+    isLiked: true,
+    isSaved: false,
+  },
+  {
+    id: 'post_3',
+    author: MOCK_USERS.leo,
+    content:
+      'Looking for 2 teammates to collaborate on HackOxford 2026 this weekend! We have strong backend systems and FPGA hardware experience, seeking someone interested in product design or distributed consensus.\n\nCoffee is on us at Missing Bean to discuss architecture.',
+    category: 'research',
+    visibility: 'campus',
+    createdAt: '4h ago',
+    likesCount: 19,
+    commentsCount: 7,
+    isLiked: false,
+    isSaved: false,
+    images: [
+      {
+        id: 'img_2',
+        url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
+        aspectRatio: 1.6,
+      },
+      {
+        id: 'img_3',
+        url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
+        aspectRatio: 1.5,
+      },
+    ],
+  },
+  {
+    id: 'post_4',
+    author: MOCK_USERS.elena,
+    content:
+      'Reminding all jurisprudence second-years: Constitutional Law revision clinic starts at 4:30 PM in the Grove Auditorium. Past exam problem breakdowns will be distributed.',
+    category: 'academic',
+    visibility: 'course',
+    createdAt: '6h ago',
+    likesCount: 31,
+    commentsCount: 3,
+    isLiked: false,
+    isSaved: false,
+  },
+  {
+    id: 'post_5',
+    author: MOCK_USERS.tariq,
+    content:
+      'Pre-clinical anatomy rotations wrap up this week. Incredibly grateful for the cohort group that kept us sane through neurovascular pathways revisions.',
+    category: 'campus-life',
+    visibility: 'campus',
+    createdAt: '8h ago',
+    likesCount: 42,
+    commentsCount: 5,
+    isLiked: false,
+    isSaved: false,
+  },
+];
+
+export const INITIAL_COMMENTS: Record<string, Comment[]> = {
+  post_1: [
+    {
+      id: 'com_1',
+      postId: 'post_1',
+      author: MOCK_USERS.leo,
+      content: 'Early morning Bodleian is unrivaled. Best hours for uninterrupted work.',
+      createdAt: '20m ago',
+      likesCount: 3,
+    },
+    {
+      id: 'com_2',
+      postId: 'post_1',
+      author: MOCK_USERS.elena,
+      content: 'Good luck with Davies! His question on market equilibria was infamous last term.',
+      createdAt: '12m ago',
+      likesCount: 1,
+    },
+  ],
+  post_2: [
+    {
+      id: 'com_3',
+      postId: 'post_2',
+      author: CURRENT_USER,
+      content: 'Will paper abstracts be co-reviewed with Oxford Uehiro Centre faculty?',
+      createdAt: '1h ago',
+      likesCount: 5,
+      isOwnComment: true,
+    },
+  ],
+  post_3: [
+    {
+      id: 'com_4',
+      postId: 'post_3',
+      author: CURRENT_USER,
+      content: 'Sent you a DM on campus chat — would love to discuss UI/UX and mobile client integration.',
+      createdAt: '3h ago',
+      likesCount: 2,
+      isOwnComment: true,
+    },
+  ],
+};
+
+export const INITIAL_SUGGESTIONS: ConnectionSuggestion[] = [
+  {
+    id: 'sug_1',
+    user: MOCK_USERS.amara,
+    mutualCircles: 3,
+    mutualCount: 14,
+    reason: 'Economics & Management · Lady Margaret Hall',
+    isConnected: false,
+  },
+  {
+    id: 'sug_2',
+    user: MOCK_USERS.leo,
+    mutualCircles: 5,
+    mutualCount: 22,
+    reason: "Engineering Science · St. John's",
+    isConnected: false,
+  },
+  {
+    id: 'sug_3',
+    user: MOCK_USERS.elena,
+    mutualCircles: 2,
+    mutualCount: 9,
+    reason: 'Law & Jurisprudence · Merton',
+    isConnected: false,
+  },
+  {
+    id: 'sug_4',
+    user: MOCK_USERS.tariq,
+    mutualCircles: 4,
+    mutualCount: 17,
+    reason: 'Medicine & Health · Christ Church',
+    isConnected: false,
+  },
+];
+
+export const INITIAL_TRENDING: TrendingTopic[] = [
+  {
+    id: 'trend_1',
+    tag: '#RadcliffeReadingRooms',
+    title: '5th Week Extended Hours',
+    postCount: 184,
+    category: 'Campus Life',
+  },
+  {
+    id: 'trend_2',
+    tag: '#HackOxford2026',
+    title: 'Hardware & AI Registrations',
+    postCount: 96,
+    category: 'Research',
+  },
+  {
+    id: 'trend_3',
+    tag: '#UnionDebateTonight',
+    title: 'Ethics in Autonomous Systems',
+    postCount: 142,
+    category: 'Events',
+  },
+  {
+    id: 'trend_4',
+    tag: '#MichaelmasCollections',
+    title: 'Departmental Revision Syllabus',
+    postCount: 78,
+    category: 'Academic',
+  },
+];
