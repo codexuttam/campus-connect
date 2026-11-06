@@ -162,3 +162,4 @@ const styles = StyleSheet.create({
     fontFamily: theme.fontFamilies.sans.semiBold,
   },
 });
+

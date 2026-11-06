@@ -323,3 +323,4 @@ export const INITIAL_TRENDING: TrendingTopic[] = [
     category: 'Academic',
   },
 ];
+
