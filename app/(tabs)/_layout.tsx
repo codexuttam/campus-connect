@@ -1,12 +1,30 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabBarIcon, TabRouteName } from '../../components/navigation/TabBarIcon';
 import { theme } from '../../theme';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { status, isInitialized } = useAuth();
+
+  // Guard protected tabs routes against unauthenticated or incomplete states
+  if (isInitialized && status !== 'fully_onboarded') {
+    if (status === 'unauthenticated') {
+      return <Redirect href="/(auth)/welcome" />;
+    }
+    if (status === 'registration_incomplete') {
+      return <Redirect href="/(auth)/onboarding" />;
+    }
+    if (status === 'email_verification_pending') {
+      return <Redirect href="/(auth)/verify-email" />;
+    }
+    if (status === 'college_verification_pending') {
+      return <Redirect href="/(auth)/college-status" />;
+    }
+  }
 
   // Ensure adequate height considering safe area insets
   const tabHeight = 56 + Math.max(insets.bottom, 12);
@@ -103,9 +121,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontFamily: theme.fontFamilies.sans.medium,
-    fontSize: theme.fontSizes.caption,
-    letterSpacing: theme.letterSpacing.normal,
-    marginTop: 2,
+    fontSize: 11,
+    marginTop: -2,
   },
 });
-

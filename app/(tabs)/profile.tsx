@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Settings, Shield, BookOpen, Layers, ExternalLink } from 'lucide-react-native';
+import { Settings, Shield, BookOpen, Layers, ExternalLink, LogOut } from 'lucide-react-native';
 import {
   AppText,
   AppCard,
@@ -13,9 +13,22 @@ import {
 } from '../../components/ui';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { theme } from '../../theme';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const fullName = user?.fullName || 'Julian Vance';
+  const course = user?.courseOrBranch || 'Computer Science & Philosophy';
+  const collegeName = user?.collegeName || 'Balliol College';
+  const gradYear = user?.graduationYear ? `Class of '${user.graduationYear.slice(-2)}` : "Class of '26";
+  const isVerified = user?.collegeVerificationStatus === 'verified';
+
+  const handleSignOut = async () => {
+    await logout();
+    router.replace('/(auth)/welcome');
+  };
 
   return (
     <ScreenContainer scrollable safeTop padded={false}>
@@ -46,17 +59,20 @@ export default function ProfileScreen() {
         {/* Profile Identity Card */}
         <AppCard variant="default" padding="lg" style={styles.identityCard}>
           <View style={styles.avatarRow}>
-            <AppAvatar name="Julian Vance" size="lg" borderColor={theme.colors.maroon} />
+            <AppAvatar name={fullName} size="lg" borderColor={theme.colors.maroon} />
             <View style={styles.identityText}>
               <AppText variant="h2" serif color="primary">
-                Julian Vance
+                {fullName}
               </AppText>
               <AppText variant="bodySmall" color="secondary">
-                Computer Science & Philosophy
+                {course}
               </AppText>
               <View style={styles.badgeRow}>
-                <AppBadge label="Class of '26" variant="maroon" size="sm" />
-                <AppBadge label="Balliol College" variant="olive" size="sm" />
+                <AppBadge label={gradYear} variant="maroon" size="sm" />
+                <AppBadge label={collegeName} variant="olive" size="sm" />
+                {isVerified ? (
+                  <AppBadge label="Verified" variant="olive" size="sm" dot />
+                ) : null}
               </View>
             </View>
           </View>
@@ -121,6 +137,24 @@ export default function ProfileScreen() {
             </AppText>
           </AppCard>
         </View>
+
+        {/* Authentication & Session Management Action */}
+        <View style={styles.sessionCard}>
+          <AppButton
+            title="Sign Out of CampusConnect"
+            variant="secondary"
+            size="md"
+            fullWidth
+            leadingIcon={
+              <LogOut
+                size={16}
+                color={theme.colors.textPrimary}
+                strokeWidth={theme.icons.strokeWidth.default}
+              />
+            }
+            onPress={handleSignOut}
+          />
+        </View>
       </View>
     </ScreenContainer>
   );
@@ -158,6 +192,7 @@ const styles = StyleSheet.create({
   },
   badgeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: theme.spacing.xs,
     marginTop: theme.spacing.sm,
   },
@@ -186,6 +221,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
   },
   statBox: {
     flex: 1,
@@ -196,5 +232,7 @@ const styles = StyleSheet.create({
   roleStat: {
     marginTop: 4,
   },
+  sessionCard: {
+    marginTop: theme.spacing.sm,
+  },
 });
-

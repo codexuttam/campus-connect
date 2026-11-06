@@ -7,11 +7,17 @@ export type RootTabParamList = {
 };
 
 export type AppRoutes =
+  | '/'
   | '/(tabs)'
   | '/(tabs)/explore'
   | '/(tabs)/create'
   | '/(tabs)/chats'
   | '/(tabs)/profile'
   | '/showcase'
-  | '/(auth)/login';
-
+  | '/(auth)/welcome'
+  | '/(auth)/login'
+  | '/(auth)/register'
+  | '/(auth)/onboarding'
+  | '/(auth)/verify-email'
+  | '/(auth)/college-status'
+  | '/(auth)/forgot-password';
