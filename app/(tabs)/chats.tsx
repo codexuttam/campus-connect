@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { MessageSquare, Edit3 } from 'lucide-react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { MessageSquare, Edit3, ShoppingBag } from 'lucide-react-native';
 import {
   AppText,
   AppCard,
@@ -12,6 +13,11 @@ import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { theme } from '../../theme';
 
 export default function ChatsScreen() {
+  const { listingId, sellerName } = useLocalSearchParams<{
+    listingId?: string;
+    sellerName?: string;
+  }>();
+
   return (
     <ScreenContainer scrollable safeTop padded={false}>
       <View style={styles.header}>
@@ -39,6 +45,21 @@ export default function ChatsScreen() {
       </View>
 
       <View style={styles.content}>
+        {/* Marketplace Context Banner if opened from a listing */}
+        {listingId && (
+          <AppCard variant="surface" padding="sm" style={styles.marketplaceInquiryCard}>
+            <View style={styles.inquiryHeader}>
+              <ShoppingBag size={16} color={theme.colors.maroon} />
+              <AppText variant="captionMedium" color="primary">
+                Marketplace Inquiry Context
+              </AppText>
+            </View>
+            <AppText variant="caption" color="secondary" style={{ marginTop: 2 }}>
+              Connecting with {sellerName || 'seller'} regarding listing #{listingId.slice(-6)}. Real-time messaging will open directly once peer chat channels are deployed.
+            </AppText>
+          </AppCard>
+        )}
+
         {/* Sample conversation preview item showing visual design */}
         <AppCard variant="default" padding="sm" style={styles.conversationCard}>
           <View style={styles.chatRow}>
@@ -96,6 +117,16 @@ const styles = StyleSheet.create({
   },
   conversationCard: {
     marginBottom: theme.spacing.lg,
+  },
+  marketplaceInquiryCard: {
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  inquiryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   chatRow: {
     flexDirection: 'row',

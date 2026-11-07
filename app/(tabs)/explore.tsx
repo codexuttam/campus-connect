@@ -21,6 +21,11 @@ import {
   UserProfileModal,
 } from '../../features/explore/components';
 import { PostCard } from '../../features/feed/components/PostCard';
+import { MarketplaceProductCard } from '../../features/marketplace/components/MarketplaceProductCard';
+import {
+  useMarketplaceListings,
+  useToggleSaveListing as useToggleSaveMarketplaceListing,
+} from '../../features/marketplace/hooks/useMarketplace';
 import {
   useTrendingProjects,
   useRecommendedStudents,
@@ -79,11 +84,18 @@ export default function ExploreScreen() {
 
   const { data: highlights = [], refetch: refetchHighlights } = useCampusHighlights();
 
+  const {
+    data: marketplaceListings = [],
+    isLoading: isMarketplaceLoading,
+    refetch: refetchMarketplace,
+  } = useMarketplaceListings({ sortBy: 'newest' });
+
   // Mutations
   const connectMutation = useToggleConnection();
   const followMutation = useToggleFollow();
   const bookmarkMutation = useToggleBookmarkProject();
   const communityMutation = useToggleCommunityMembership();
+  const saveMarketplaceMutation = useToggleSaveMarketplaceListing();
 
   const likePostMutation = useLikePost();
   const savePostMutation = useSavePost();
@@ -99,6 +111,7 @@ export default function ExploreScreen() {
       refetchStudents(),
       refetchCommunities(),
       refetchHighlights(),
+      refetchMarketplace(),
     ]);
     setIsRefreshing(false);
   };
@@ -268,6 +281,41 @@ export default function ExploreScreen() {
                     onToggleJoin={() => communityMutation.mutate(community.id)}
                     compact
                   />
+                ))}
+              </ScrollView>
+            )}
+          </DiscoverySection>
+        )}
+
+        {/* Section: Campus Marketplace */}
+        {selectedCategory === 'all' && (
+          <DiscoverySection
+            title="Campus Marketplace"
+            kicker="PEER-TO-PEER COMMERCE"
+            subtitle="Textbooks, tech, dorm essentials & free student items"
+            onViewAll={() => router.push('/marketplace')}
+          >
+            {isMarketplaceLoading ? (
+              <LoadingIndicator size="small" label="Loading campus items..." />
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalScroll}
+              >
+                {marketplaceListings.slice(0, 6).map((item) => (
+                  <View key={item.id} style={{ width: 156, marginRight: 12 }}>
+                    <MarketplaceProductCard
+                      listing={item}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/marketplace/[id]',
+                          params: { id: item.id },
+                        })
+                      }
+                      onToggleSave={() => saveMarketplaceMutation.mutate(item.id)}
+                    />
+                  </View>
                 ))}
               </ScrollView>
             )}

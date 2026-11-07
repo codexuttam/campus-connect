@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ShoppingBag, ChevronRight } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { AppHeader } from '../../components/ui/AppHeader';
 import { AppText } from '../../components/ui/AppText';
@@ -44,6 +45,28 @@ export default function CreateScreen() {
           </AppText>
         </View>
 
+        <Pressable
+          onPress={() => router.push('/marketplace/create')}
+          style={({ pressed }) => [styles.marketplaceBanner, pressed && styles.marketplaceBannerPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Sell on campus marketplace"
+        >
+          <View style={styles.bannerLeft}>
+            <View style={styles.bannerIcon}>
+              <ShoppingBag size={18} color={theme.colors.maroon} />
+            </View>
+            <View>
+              <AppText variant="captionMedium" color="primary">
+                Selling textbooks, electronics, or dorm gear?
+              </AppText>
+              <AppText variant="caption" color="secondary">
+                List on the Campus Marketplace
+              </AppText>
+            </View>
+          </View>
+          <ChevronRight size={16} color={theme.colors.textSecondary} />
+        </Pressable>
+
         <CreatePostForm
           onPublish={handlePublish}
           isLoading={createPostMutation.isPending}
@@ -72,5 +95,32 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 4,
+  },
+  marketplaceBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.surface,
+    padding: 10,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: theme.spacing.md,
+  },
+  marketplaceBannerPressed: {
+    backgroundColor: theme.colors.surfaceLight,
+  },
+  bannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  bannerIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.maroonLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

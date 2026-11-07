@@ -24,4 +24,10 @@ export type AppRoutes =
   | '/(auth)/onboarding'
   | '/(auth)/verify-email'
   | '/(auth)/college-status'
-  | '/(auth)/forgot-password';
+  | '/(auth)/forgot-password'
+  | '/marketplace'
+  | '/marketplace/[id]'
+  | '/marketplace/create'
+  | '/marketplace/saved'
+  | '/marketplace/my-listings'
+  | '/marketplace/edit/[id]';

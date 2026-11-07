@@ -79,6 +79,18 @@ export default function RootLayout() {
           <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="search" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
+          <Stack.Screen name="marketplace/index" options={{ headerShown: false }} />
+          <Stack.Screen name="marketplace/[id]" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="marketplace/create"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen name="marketplace/saved" options={{ headerShown: false }} />
+          <Stack.Screen name="marketplace/my-listings" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="marketplace/edit/[id]"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
         </Stack>
       </QueryClientProvider>
     </SafeAreaProvider>
