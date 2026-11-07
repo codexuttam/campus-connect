@@ -47,116 +47,119 @@ export const MarketplaceProductCard: React.FC<MarketplaceProductCardProps> = ({
   );
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.card,
         width ? { width } : styles.defaultWidth,
-        pressed && styles.pressed,
         style,
       ]}
-      accessibilityRole="button"
-      accessibilityLabel={`${listing.title}, ${formattedPrice}`}
     >
-      {/* 1:1 Aspect Ratio Product Thumbnail Container */}
-      <View style={styles.imageContainer}>
-        {imageError ? (
-          <View style={styles.imageFallback}>
-            <Sparkles size={24} color={theme.colors.textMuted} />
-          </View>
-        ) : (
-          <Image
-            source={{ uri: coverImage }}
-            style={styles.image}
-            resizeMode="cover"
-            onError={() => setImageError(true)}
-          />
-        )}
-
-        {/* Sold / Reserved Status Overlay */}
-        {isSold && (
-          <View style={styles.soldOverlay}>
-            <View style={styles.soldPill}>
-              <AppText variant="caption" style={styles.soldText}>
-                SOLD
-              </AppText>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.mainPressable,
+          pressed && styles.pressed,
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={`${listing.title}, ${formattedPrice}`}
+      >
+        {/* 1:1 Aspect Ratio Product Thumbnail Container */}
+        <View style={styles.imageContainer}>
+          {imageError ? (
+            <View style={styles.imageFallback}>
+              <Sparkles size={24} color={theme.colors.textMuted} />
             </View>
-          </View>
-        )}
-        {!isSold && isReserved && (
-          <View style={styles.reservedOverlay}>
-            <View style={styles.reservedPill}>
-              <AppText variant="caption" style={styles.reservedText}>
-                RESERVED
-              </AppText>
-            </View>
-          </View>
-        )}
-
-        {/* Bookmark Icon Button */}
-        {onToggleSave && (
-          <Pressable
-            onPress={(e) => {
-              e.stopPropagation();
-              onToggleSave();
-            }}
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.saveButton,
-              listing.isSaved && styles.saveButtonActive,
-              pressed && styles.saveButtonPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={listing.isSaved ? 'Unsave listing' : 'Save listing'}
-          >
-            <Bookmark
-              size={15}
-              color={listing.isSaved ? theme.colors.maroon : theme.colors.textPrimary}
-              fill={listing.isSaved ? theme.colors.maroon : 'transparent'}
-              strokeWidth={2}
+          ) : (
+            <Image
+              source={{ uri: coverImage }}
+              style={styles.image}
+              resizeMode="cover"
+              onError={() => setImageError(true)}
             />
-          </Pressable>
-        )}
-      </View>
+          )}
 
-      {/* Card Body */}
-      <View style={styles.details}>
-        {/* Price & Listing Type */}
-        <View style={styles.priceRow}>
-          <AppText
-            variant="bodyMedium"
-            style={[
-              styles.priceText,
-              listing.listingType === 'free' && styles.freePriceText,
-              listing.listingType === 'exchange' && styles.exchangePriceText,
-            ]}
-            numberOfLines={1}
-          >
-            {formattedPrice}
-          </AppText>
-        </View>
-
-        {/* Product Title (Max 2 lines) */}
-        <AppText
-          variant="bodySmall"
-          color="primary"
-          style={styles.title}
-          numberOfLines={2}
-        >
-          {listing.title}
-        </AppText>
-
-        {/* Condition & College/Time Footer */}
-        <View style={styles.footerRow}>
-          <ProductConditionBadge condition={listing.condition} size="sm" />
-          {listing.seller.isCollegeVerified && (
-            <AppText variant="caption" color="secondary" style={styles.verifiedDot}>
-              Verified
-            </AppText>
+          {/* Sold / Reserved Status Overlay */}
+          {isSold && (
+            <View style={styles.soldOverlay}>
+              <View style={styles.soldPill}>
+                <AppText variant="caption" style={styles.soldText}>
+                  SOLD
+                </AppText>
+              </View>
+            </View>
+          )}
+          {!isSold && isReserved && (
+            <View style={styles.reservedOverlay}>
+              <View style={styles.reservedPill}>
+                <AppText variant="caption" style={styles.reservedText}>
+                  RESERVED
+                </AppText>
+              </View>
+            </View>
           )}
         </View>
-      </View>
-    </Pressable>
+
+        {/* Card Body */}
+        <View style={styles.details}>
+          {/* Price & Listing Type */}
+          <View style={styles.priceRow}>
+            <AppText
+              variant="bodyMedium"
+              style={[
+                styles.priceText,
+                listing.listingType === 'free' && styles.freePriceText,
+                listing.listingType === 'exchange' && styles.exchangePriceText,
+              ]}
+              numberOfLines={1}
+            >
+              {formattedPrice}
+            </AppText>
+          </View>
+
+          {/* Product Title (Max 2 lines) */}
+          <AppText
+            variant="bodySmall"
+            color="primary"
+            style={styles.title}
+            numberOfLines={2}
+          >
+            {listing.title}
+          </AppText>
+
+          {/* Condition & College/Time Footer */}
+          <View style={styles.footerRow}>
+            <ProductConditionBadge condition={listing.condition} size="sm" />
+            {listing.seller.isCollegeVerified && (
+              <AppText variant="caption" color="secondary" style={styles.verifiedDot}>
+                Verified
+              </AppText>
+            )}
+          </View>
+        </View>
+      </Pressable>
+
+      {/* Bookmark Icon Button: Positioned as sibling overlay on top of card */}
+      {onToggleSave && (
+        <Pressable
+          onPress={onToggleSave}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.saveButton,
+            listing.isSaved && styles.saveButtonActive,
+            pressed && styles.saveButtonPressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={listing.isSaved ? 'Unsave listing' : 'Save listing'}
+        >
+          <Bookmark
+            size={15}
+            color={listing.isSaved ? theme.colors.maroon : theme.colors.textPrimary}
+            fill={listing.isSaved ? theme.colors.maroon : 'transparent'}
+            strokeWidth={2}
+          />
+        </Pressable>
+      )}
+    </View>
   );
 };
 
@@ -170,6 +173,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   defaultWidth: {
+    flex: 1,
+  },
+  mainPressable: {
     flex: 1,
   },
   pressed: {
@@ -237,6 +243,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
+    zIndex: 10,
     width: 28,
     height: 28,
     borderRadius: 14,
