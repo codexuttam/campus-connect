@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Plus, X, Star } from 'lucide-react-native';
+import { Camera, X, Star, Sparkles } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { theme } from '../../../theme';
 
@@ -17,6 +17,25 @@ export interface ListingImagePickerProps {
   onChangeImages: (images: string[]) => void;
   maxImages?: number;
 }
+
+const SAMPLE_CAMPUS_PHOTOS = [
+  {
+    label: 'Textbook',
+    uri: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    label: 'Electronics',
+    uri: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    label: 'Study Lamp',
+    uri: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    label: 'Headphones',
+    uri: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+  },
+];
 
 export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
   images,
@@ -54,6 +73,12 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
     } catch (err: any) {
       Alert.alert('Photo Selection Error', err?.message || 'Could not select images.');
     }
+  };
+
+  const handleAddSamplePhoto = (uri: string) => {
+    if (images.length >= maxImages) return;
+    if (images.includes(uri)) return;
+    onChangeImages([...images, uri]);
   };
 
   const handleRemove = (index: number) => {
@@ -96,7 +121,7 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
           >
             <Camera size={24} color={theme.colors.maroon} strokeWidth={1.8} />
             <AppText variant="caption" color="secondary" style={styles.addText}>
-              Add Photo
+              Upload Photo
             </AppText>
           </Pressable>
         )}
@@ -142,6 +167,44 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
           );
         })}
       </ScrollView>
+
+      {/* Quick Sample Presets for Simulator / Web Preview Testing */}
+      {images.length < maxImages && (
+        <View style={styles.sampleSection}>
+          <View style={styles.sampleHeader}>
+            <Sparkles size={12} color={theme.colors.olive} />
+            <AppText variant="caption" color="secondary">
+              Quick-attach sample campus item photo:
+            </AppText>
+          </View>
+          <View style={styles.sampleChips}>
+            {SAMPLE_CAMPUS_PHOTOS.map((sample) => {
+              const isAdded = images.includes(sample.uri);
+              return (
+                <Pressable
+                  key={sample.label}
+                  onPress={() => handleAddSamplePhoto(sample.uri)}
+                  disabled={isAdded}
+                  style={[
+                    styles.sampleChip,
+                    isAdded && styles.sampleChipDisabled,
+                  ]}
+                >
+                  <AppText
+                    variant="caption"
+                    style={[
+                      styles.sampleChipText,
+                      isAdded && styles.sampleChipTextDisabled,
+                    ]}
+                  >
+                    + {sample.label}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -238,5 +301,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  sampleSection: {
+    marginTop: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.borderSubtle,
+  },
+  sampleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  sampleChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sampleChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  sampleChipDisabled: {
+    opacity: 0.45,
+  },
+  sampleChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+  },
+  sampleChipTextDisabled: {
+    color: theme.colors.textMuted,
+  },
 });
-

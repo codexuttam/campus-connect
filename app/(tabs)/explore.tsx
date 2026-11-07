@@ -4,11 +4,12 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { LoadingIndicator } from '../../components/ui/LoadingIndicator';
+import { AppButton } from '../../components/ui/AppButton';
 import {
   ExploreHeader,
   CategoryFilter,
@@ -52,6 +53,8 @@ import { theme } from '../../theme';
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  const gridCardWidth = Math.max(135, (screenWidth - theme.spacing.screenPadding * 2 - 12) / 2);
 
   // State
   const [selectedCategory, setSelectedCategory] = useState<ExploreCategory>('all');
@@ -288,7 +291,7 @@ export default function ExploreScreen() {
         )}
 
         {/* Section: Campus Marketplace */}
-        {selectedCategory === 'all' && (
+        {(selectedCategory === 'all' || selectedCategory === 'marketplace') && (
           <DiscoverySection
             title="Campus Marketplace"
             kicker="PEER-TO-PEER COMMERCE"
@@ -297,6 +300,42 @@ export default function ExploreScreen() {
           >
             {isMarketplaceLoading ? (
               <LoadingIndicator size="small" label="Loading campus items..." />
+            ) : selectedCategory === 'marketplace' ? (
+              <View style={styles.verticalList}>
+                <View style={styles.marketplaceQuickRow}>
+                  <AppButton
+                    variant="outline"
+                    title="Full Marketplace & Filters"
+                    size="sm"
+                    onPress={() => router.push('/marketplace')}
+                    style={{ flex: 1 }}
+                  />
+                  <AppButton
+                    variant="primary"
+                    title="+ Sell an Item"
+                    size="sm"
+                    onPress={() => router.push('/marketplace/create')}
+                    style={{ flex: 1 }}
+                  />
+                </View>
+
+                <View style={styles.marketplaceGrid}>
+                  {marketplaceListings.map((item) => (
+                    <MarketplaceProductCard
+                      key={item.id}
+                      listing={item}
+                      width={gridCardWidth}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/marketplace/[id]',
+                          params: { id: item.id },
+                        })
+                      }
+                      onToggleSave={() => saveMarketplaceMutation.mutate(item.id)}
+                    />
+                  ))}
+                </View>
+              </View>
             ) : (
               <ScrollView
                 horizontal
@@ -428,5 +467,15 @@ const styles = StyleSheet.create({
   },
   verticalList: {
     paddingHorizontal: theme.spacing.screenPadding,
+  },
+  marketplaceQuickRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: theme.spacing.md,
+  },
+  marketplaceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
 });

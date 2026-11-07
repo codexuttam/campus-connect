@@ -14,10 +14,14 @@ export const CreateListingScreen: React.FC = () => {
 
   const handlePublish = async (values: CreateListingInput) => {
     const created = await createMutation.mutateAsync(values);
-    router.replace({
-      pathname: '/marketplace/[id]',
-      params: { id: created.id },
-    });
+    if (created.status === 'draft') {
+      router.replace('/marketplace/my-listings');
+    } else {
+      router.replace({
+        pathname: '/marketplace/[id]',
+        params: { id: created.id },
+      });
+    }
   };
 
   return (

@@ -117,9 +117,24 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     }
 
     try {
-      await onSubmit(currentPayload);
+      await onSubmit({ ...currentPayload, status: 'active' });
     } catch (err: any) {
       Alert.alert('Submission Error', err?.message || 'Could not publish listing.');
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const { isValid, errors: finalErrors } = validateListingInput(currentPayload);
+    if (!isValid) {
+      setErrors(finalErrors);
+      Alert.alert('Validation Error', Object.values(finalErrors)[0]);
+      return;
+    }
+
+    try {
+      await onSubmit({ ...currentPayload, status: 'draft' });
+    } catch (err: any) {
+      Alert.alert('Draft Error', err?.message || 'Could not save draft.');
     }
   };
 
@@ -589,6 +604,16 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 style={styles.halfBtn}
               />
             </View>
+
+            {!isEditing && (
+              <AppButton
+                variant="ghost"
+                title="Save as Draft for Later"
+                onPress={handleSaveDraft}
+                disabled={isLoading}
+                style={{ marginTop: 10 }}
+              />
+            )}
           </View>
         )}
       </ScrollView>

@@ -31,10 +31,12 @@ import {
   ProductConditionBadge,
   ProductStatusBadge,
   SellerInfoCard,
+  MarketplaceProductCard,
   MarketplaceReportModal,
   SellerContactModal,
 } from '../components';
 import {
+  useMarketplaceListings,
   useMarketplaceListingDetails,
   useToggleSaveListing,
   useMarkListingStatus,
@@ -59,6 +61,7 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
 
   // Queries & Mutations
   const { data: listing, isLoading, error } = useMarketplaceListingDetails(id);
+  const { data: allListings = [] } = useMarketplaceListings({ sortBy: 'newest' });
   const toggleSaveMutation = useToggleSaveListing();
   const markStatusMutation = useMarkListingStatus();
   const deleteMutation = useDeleteListing();
@@ -115,6 +118,16 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
     const nextStatus = isSold ? 'active' : 'sold';
     markStatusMutation.mutate({ id: listing.id, status: nextStatus });
   };
+
+  const handleToggleReservedStatus = () => {
+    const nextStatus = isReserved ? 'active' : 'reserved';
+    markStatusMutation.mutate({ id: listing.id, status: nextStatus });
+  };
+
+  const similarListings = allListings
+    .filter((item) => item.id !== listing.id && item.status === 'active')
+    .sort((a, b) => (a.category === listing.category ? -1 : 1))
+    .slice(0, 4);
 
   const handleDeleteListing = () => {
     Alert.alert(
@@ -285,14 +298,25 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
               <View style={styles.ownerButtonsRow}>
                 <AppButton
                   variant="outline"
-                  title={isSold ? 'Mark as Available' : 'Mark as Sold'}
+                  title={isSold ? 'Available' : 'Mark Sold'}
                   onPress={handleToggleSoldStatus}
                   size="sm"
                   style={styles.ownerBtn}
                 />
+                {!isSold && (
+                  <AppButton
+                    variant="outline"
+                    title={isReserved ? 'Unreserve' : 'Reserve'}
+                    onPress={handleToggleReservedStatus}
+                    size="sm"
+                    style={styles.ownerBtn}
+                  />
+                )}
+              </View>
+              <View style={[styles.ownerButtonsRow, { marginTop: 8 }]}>
                 <AppButton
                   variant="outline"
-                  title="Edit"
+                  title="Edit Details"
                   onPress={() =>
                     router.push({
                       pathname: '/marketplace/edit/[id]',
@@ -304,12 +328,42 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
                 />
                 <AppButton
                   variant="outline"
-                  title="Delete"
+                  title="Delete Listing"
                   onPress={handleDeleteListing}
                   size="sm"
                   style={[styles.ownerBtn, styles.deleteBtn]}
                 />
               </View>
+            </View>
+          )}
+
+          {/* Similar Campus Items Discovery */}
+          {similarListings.length > 0 && (
+            <View style={{ marginTop: theme.spacing.xl }}>
+              <AppText variant="captionMedium" color="secondary" style={styles.sectionHeader}>
+                MORE FROM CAMPUS MARKETPLACE
+              </AppText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 12, paddingTop: 4, paddingBottom: 8 }}
+              >
+                {similarListings.map((simItem) => (
+                  <MarketplaceProductCard
+                    key={simItem.id}
+                    listing={simItem}
+                    width={150}
+                    style={{ marginBottom: 0 }}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/marketplace/[id]',
+                        params: { id: simItem.id },
+                      })
+                    }
+                    onToggleSave={() => toggleSaveMutation.mutate(simItem.id)}
+                  />
+                ))}
+              </ScrollView>
             </View>
           )}
         </View>

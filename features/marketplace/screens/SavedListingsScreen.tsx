@@ -4,10 +4,10 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Bookmark, Sparkles } from 'lucide-react-native';
+import { Bookmark } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { AppHeader } from '../../../components/ui/AppHeader';
 import { LoadingIndicator } from '../../../components/ui/LoadingIndicator';
@@ -18,13 +18,13 @@ import { useSavedListings, useToggleSaveListing } from '../hooks/useMarketplace'
 import { MarketplaceListing } from '../types';
 import { theme } from '../../../theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COLUMN_GAP = 12;
 const PADDING = theme.spacing.screenPadding;
-const CARD_WIDTH = (SCREEN_WIDTH - PADDING * 2 - COLUMN_GAP) / 2;
 
 export const SavedListingsScreen: React.FC = () => {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = Math.max(135, (screenWidth - PADDING * 2 - COLUMN_GAP) / 2);
 
   const {
     data: savedListings = [],
@@ -38,7 +38,7 @@ export const SavedListingsScreen: React.FC = () => {
   const renderItem = ({ item }: { item: MarketplaceListing }) => (
     <MarketplaceProductCard
       listing={item}
-      width={CARD_WIDTH}
+      width={cardWidth}
       onPress={() =>
         router.push({
           pathname: '/marketplace/[id]',

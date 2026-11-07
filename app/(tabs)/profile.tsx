@@ -1,7 +1,17 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Settings, Shield, BookOpen, Layers, ExternalLink, LogOut } from 'lucide-react-native';
+import {
+  Settings,
+  Layers,
+  ExternalLink,
+  LogOut,
+  ShoppingBag,
+  Bookmark,
+  Tag,
+  Plus,
+  ChevronRight,
+} from 'lucide-react-native';
 import {
   AppText,
   AppCard,
@@ -12,12 +22,18 @@ import {
   Divider,
 } from '../../components/ui';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
+import {
+  useMyListings,
+  useSavedListings,
+} from '../../features/marketplace/hooks/useMarketplace';
 import { theme } from '../../theme';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { data: myActiveListings = [] } = useMyListings('active');
+  const { data: savedListings = [] } = useSavedListings();
 
   const fullName = user?.fullName || 'Julian Vance';
   const course = user?.courseOrBranch || 'Computer Science & Philosophy';
@@ -76,6 +92,80 @@ export default function ProfileScreen() {
               </View>
             </View>
           </View>
+        </AppCard>
+
+        {/* Campus Marketplace Activity Hub */}
+        <AppCard variant="default" padding="md" style={styles.marketplaceHubCard}>
+          <View style={styles.systemHeader}>
+            <View style={[styles.iconTag, { backgroundColor: theme.colors.maroonLight }]}>
+              <ShoppingBag size={18} color={theme.colors.maroon} />
+            </View>
+            <View style={styles.systemTitleCol}>
+              <AppText variant="bodySmallMedium" color="primary">
+                Campus Marketplace
+              </AppText>
+              <AppText variant="caption" color="secondary">
+                Manage your listings, saved items & peer trades
+              </AppText>
+            </View>
+            <Pressable
+              onPress={() => router.push('/marketplace/create')}
+              style={styles.sellPill}
+            >
+              <Plus size={12} color="#FBF7EF" strokeWidth={2.5} />
+              <AppText variant="caption" style={styles.sellPillText}>
+                Sell
+              </AppText>
+            </Pressable>
+          </View>
+
+          <Divider spacing="sm" />
+
+          <View style={styles.marketplaceActionGrid}>
+            <Pressable
+              onPress={() => router.push('/marketplace/my-listings')}
+              style={styles.marketplaceActionItem}
+            >
+              <View style={styles.marketplaceActionLeft}>
+                <Tag size={16} color={theme.colors.maroon} />
+                <View>
+                  <AppText variant="bodySmallMedium" color="primary">
+                    My Listings
+                  </AppText>
+                  <AppText variant="caption" color="secondary">
+                    {myActiveListings.length} active on campus
+                  </AppText>
+                </View>
+              </View>
+              <ChevronRight size={16} color={theme.colors.textSecondary} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push('/marketplace/saved')}
+              style={styles.marketplaceActionItem}
+            >
+              <View style={styles.marketplaceActionLeft}>
+                <Bookmark size={16} color={theme.colors.olive} />
+                <View>
+                  <AppText variant="bodySmallMedium" color="primary">
+                    Saved Items
+                  </AppText>
+                  <AppText variant="caption" color="secondary">
+                    {savedListings.length} bookmarked
+                  </AppText>
+                </View>
+              </View>
+              <ChevronRight size={16} color={theme.colors.textSecondary} />
+            </Pressable>
+          </View>
+
+          <AppButton
+            title="Browse Campus Marketplace"
+            variant="outline"
+            size="sm"
+            onPress={() => router.push('/marketplace')}
+            style={{ marginTop: 10 }}
+          />
         </AppCard>
 
         {/* System & Architecture Quick Access */}
@@ -198,6 +288,42 @@ const styles = StyleSheet.create({
   },
   systemCard: {
     marginBottom: theme.spacing.lg,
+  },
+  marketplaceHubCard: {
+    marginBottom: theme.spacing.lg,
+  },
+  sellPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: theme.colors.maroon,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radius.full,
+  },
+  sellPillText: {
+    color: '#FBF7EF',
+    fontWeight: '700',
+    fontSize: 11,
+  },
+  marketplaceActionGrid: {
+    gap: 8,
+  },
+  marketplaceActionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  marketplaceActionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   systemHeader: {
     flexDirection: 'row',

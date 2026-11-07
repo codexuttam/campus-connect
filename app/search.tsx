@@ -7,15 +7,32 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, X, ChevronLeft, SlidersHorizontal, Users, FolderGit2, Compass, FileText, Layers } from 'lucide-react-native';
+import {
+  Search,
+  X,
+  ChevronLeft,
+  SlidersHorizontal,
+  Users,
+  FolderGit2,
+  Compass,
+  FileText,
+  Layers,
+  ShoppingBag,
+} from 'lucide-react-native';
 import { AppHeader } from '../components/ui/AppHeader';
 import { AppText } from '../components/ui/AppText';
 import { AppBadge } from '../components/ui/AppBadge';
 import { IconButton } from '../components/ui/IconButton';
 import { LoadingIndicator } from '../components/ui/LoadingIndicator';
+import { MarketplaceProductCard } from '../features/marketplace/components/MarketplaceProductCard';
+import {
+  useMarketplaceListings,
+  useToggleSaveListing as useToggleSaveMarketplaceListing,
+} from '../features/marketplace/hooks/useMarketplace';
 import {
   SearchHistory,
   EmptySearchState,
@@ -42,10 +59,17 @@ import {
 import { Post } from '../features/feed/types';
 import { theme } from '../theme';
 
-type SearchCategoryTab = 'all' | 'students' | 'projects' | 'communities' | 'posts';
+type SearchCategoryTab =
+  | 'all'
+  | 'students'
+  | 'projects'
+  | 'communities'
+  | 'posts'
+  | 'marketplace';
 
 const RESULT_TABS: { id: SearchCategoryTab; label: string; icon: any }[] = [
   { id: 'all', label: 'All Results', icon: Layers },
+  { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
   { id: 'students', label: 'People', icon: Users },
   { id: 'projects', label: 'Projects', icon: FolderGit2 },
   { id: 'communities', label: 'Communities', icon: Compass },
@@ -55,6 +79,8 @@ const RESULT_TABS: { id: SearchCategoryTab; label: string; icon: any }[] = [
 export default function GlobalSearchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = Math.max(135, (screenWidth - theme.spacing.screenPadding * 2 - 12) / 2);
 
   const [query, setQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState<SearchCategoryTab>('all');
@@ -75,6 +101,9 @@ export default function GlobalSearchScreen() {
   } = useGlobalSearch(query, activeFilters);
 
   const { data: searchHistory = [] } = useSearchHistory();
+  const { data: marketplaceMatches = [] } = useMarketplaceListings(
+    query.trim() ? { query: query.trim() } : undefined
+  );
 
   // Mutations
   const addHistoryMutation = useAddSearchHistory();
@@ -82,6 +111,7 @@ export default function GlobalSearchScreen() {
   const connectMutation = useToggleConnection();
   const followMutation = useToggleFollow();
   const bookmarkMutation = useToggleBookmarkProject();
+  const saveMarketplaceMutation = useToggleSaveMarketplaceListing();
 
   const handleSelectTerm = (term: string) => {
     setQuery(term);
@@ -99,8 +129,9 @@ export default function GlobalSearchScreen() {
   const projects = searchResults?.projects || [];
   const communities = searchResults?.communities || [];
   const posts = searchResults?.posts || [];
+  const marketplaceItems = hasQuery ? marketplaceMatches : [];
 
-  const totalResults = searchResults?.totalResults || 0;
+  const totalResults = (searchResults?.totalResults || 0) + marketplaceItems.length;
   const hasNoResults = hasQuery && !isSearchLoading && totalResults === 0;
 
   return (
@@ -178,6 +209,7 @@ export default function GlobalSearchScreen() {
               if (tab.id === 'all') count = totalResults;
               if (tab.id === 'students') count = students.length;
               if (tab.id === 'projects') count = projects.length;
+              if (tab.id === 'marketplace') count = marketplaceItems.length;
               if (tab.id === 'communities') count = communities.length;
               if (tab.id === 'posts') count = posts.length;
 
@@ -333,6 +365,35 @@ export default function GlobalSearchScreen() {
                       }
                     />
                   ))}
+                </View>
+              )}
+
+            {/* 5. Marketplace */}
+            {(selectedTab === 'all' || selectedTab === 'marketplace') &&
+              marketplaceItems.length > 0 && (
+                <View style={styles.sectionBlock}>
+                  <View style={styles.sectionHeader}>
+                    <ShoppingBag size={14} color={theme.colors.maroon} />
+                    <AppText variant="captionMedium" color="secondary" style={styles.sectionKicker}>
+                      MARKETPLACE ({marketplaceItems.length})
+                    </AppText>
+                  </View>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                    {marketplaceItems.map((item) => (
+                      <MarketplaceProductCard
+                        key={item.id}
+                        listing={item}
+                        width={cardWidth}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/marketplace/[id]',
+                            params: { id: item.id },
+                          })
+                        }
+                        onToggleSave={() => saveMarketplaceMutation.mutate(item.id)}
+                      />
+                    ))}
+                  </View>
                 </View>
               )}
           </View>

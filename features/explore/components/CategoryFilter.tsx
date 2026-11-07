@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { Users, FolderGit2, Compass, Layers } from 'lucide-react-native';
+import { Users, FolderGit2, Compass, Layers, ShoppingBag } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { ExploreCategory } from '../types';
 import { theme } from '../../../theme';
@@ -12,6 +12,7 @@ export interface CategoryFilterProps {
 
 const CATEGORIES: { id: ExploreCategory; label: string; icon: any }[] = [
   { id: 'all', label: 'All Discovery', icon: Layers },
+  { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
   { id: 'people', label: 'People', icon: Users },
   { id: 'projects', label: 'Projects', icon: FolderGit2 },
   { id: 'communities', label: 'Communities', icon: Compass },

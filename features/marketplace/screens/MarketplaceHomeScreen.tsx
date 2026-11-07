@@ -5,10 +5,11 @@ import {
   FlatList,
   RefreshControl,
   Pressable,
-  Dimensions,
+  useWindowDimensions,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sparkles, PackageOpen, Plus, Tag } from 'lucide-react-native';
+import { PackageOpen, Plus, X, ShieldCheck } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { LoadingIndicator } from '../../../components/ui/LoadingIndicator';
 import { AppText } from '../../../components/ui/AppText';
@@ -31,17 +32,18 @@ import {
   MarketplaceFilters,
   MarketplaceListing,
 } from '../types';
+import { getConditionLabel } from '../utils/formatters';
 import { theme } from '../../../theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COLUMN_GAP = 12;
 const PADDING = theme.spacing.screenPadding;
-const CARD_WIDTH = (SCREEN_WIDTH - PADDING * 2 - COLUMN_GAP) / 2;
 
 type SectionTab = 'recent' | 'recommended' | 'free';
 
 export const MarketplaceHomeScreen: React.FC = () => {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = Math.max(135, (screenWidth - PADDING * 2 - COLUMN_GAP) / 2);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,7 +83,6 @@ export const MarketplaceHomeScreen: React.FC = () => {
       return listings;
     }
     if (activeTab === 'recommended') {
-      // Prioritize high-view or like-new items from verified students
       return [...listings].sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0));
     }
     if (activeTab === 'free') {
@@ -107,7 +108,7 @@ export const MarketplaceHomeScreen: React.FC = () => {
   const renderProductItem = ({ item }: { item: MarketplaceListing }) => (
     <MarketplaceProductCard
       listing={item}
-      width={CARD_WIDTH}
+      width={cardWidth}
       onPress={() =>
         router.push({
           pathname: '/marketplace/[id]',
@@ -123,7 +124,7 @@ export const MarketplaceHomeScreen: React.FC = () => {
       {/* Marketplace Header */}
       <MarketplaceHeader
         savedCount={savedListings.length}
-        showBack={false}
+        showBack
       />
 
       {/* Search Bar with Filter Sheet Trigger */}
@@ -142,6 +143,8 @@ export const MarketplaceHomeScreen: React.FC = () => {
           setSelectedCategory(cat);
           if (cat === 'free_items') {
             setActiveTab('free');
+          } else if (activeTab === 'free') {
+            setActiveTab('recent');
           }
         }}
       />
@@ -150,7 +153,10 @@ export const MarketplaceHomeScreen: React.FC = () => {
       <View style={styles.sectionTabsWrapper}>
         <View style={styles.sectionTabs}>
           <Pressable
-            onPress={() => setActiveTab('recent')}
+            onPress={() => {
+              setActiveTab('recent');
+              if (selectedCategory === 'free_items') setSelectedCategory('all');
+            }}
             style={[styles.sectionTab, activeTab === 'recent' && styles.sectionTabActive]}
           >
             <AppText
@@ -162,7 +168,10 @@ export const MarketplaceHomeScreen: React.FC = () => {
           </Pressable>
 
           <Pressable
-            onPress={() => setActiveTab('recommended')}
+            onPress={() => {
+              setActiveTab('recommended');
+              if (selectedCategory === 'free_items') setSelectedCategory('all');
+            }}
             style={[styles.sectionTab, activeTab === 'recommended' && styles.sectionTabActive]}
           >
             <AppText
@@ -188,6 +197,60 @@ export const MarketplaceHomeScreen: React.FC = () => {
             </AppText>
           </Pressable>
         </View>
+      </View>
+
+      {/* Active Filter Chips & Live Count Summary Bar */}
+      <View style={styles.metaBar}>
+        <View style={styles.verifiedHint}>
+          <ShieldCheck size={13} color={theme.colors.olive} />
+          <AppText variant="caption" color="secondary">
+            {displayedListings.length} {displayedListings.length === 1 ? 'listing' : 'listings'} on campus
+          </AppText>
+        </View>
+
+        {hasActiveAdvancedFilters && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.activeFilterPills}
+          >
+            {filters.condition && (
+              <Pressable
+                onPress={() => setFilters({ ...filters, condition: undefined })}
+                style={styles.activeFilterTag}
+              >
+                <AppText variant="caption" style={styles.activeFilterTagText}>
+                  {getConditionLabel(filters.condition)}
+                </AppText>
+                <X size={11} color={theme.colors.maroon} />
+              </Pressable>
+            )}
+            {filters.listingType && (
+              <Pressable
+                onPress={() => setFilters({ ...filters, listingType: undefined })}
+                style={styles.activeFilterTag}
+              >
+                <AppText variant="caption" style={styles.activeFilterTagText}>
+                  {filters.listingType.toUpperCase()}
+                </AppText>
+                <X size={11} color={theme.colors.maroon} />
+              </Pressable>
+            )}
+            {(filters.minPrice || filters.maxPrice) && (
+              <Pressable
+                onPress={() =>
+                  setFilters({ ...filters, minPrice: undefined, maxPrice: undefined })
+                }
+                style={styles.activeFilterTag}
+              >
+                <AppText variant="caption" style={styles.activeFilterTagText}>
+                  ${filters.minPrice || 0}–${filters.maxPrice || 'Any'}
+                </AppText>
+                <X size={11} color={theme.colors.maroon} />
+              </Pressable>
+            )}
+          </ScrollView>
+        )}
       </View>
 
       {/* Two-Column Responsive Virtualized Grid */}
@@ -248,6 +311,19 @@ export const MarketplaceHomeScreen: React.FC = () => {
         />
       )}
 
+      {/* Floating Sell Action Pill */}
+      <Pressable
+        onPress={() => router.push('/marketplace/create')}
+        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Create a new marketplace listing"
+      >
+        <Plus size={18} color="#FBF7EF" strokeWidth={2.5} />
+        <AppText variant="buttonSmall" style={styles.fabText}>
+          List Item
+        </AppText>
+      </Pressable>
+
       {/* Filter Bottom Sheet Modal */}
       <MarketplaceFilterSheet
         visible={isFilterSheetVisible}
@@ -267,7 +343,8 @@ const styles = StyleSheet.create({
   },
   sectionTabsWrapper: {
     paddingHorizontal: theme.spacing.screenPadding,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 4,
     backgroundColor: theme.colors.background,
   },
   sectionTabs: {
@@ -298,6 +375,40 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontWeight: '700',
   },
+  metaBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.screenPadding,
+    paddingVertical: 6,
+  },
+  verifiedHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  activeFilterPills: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginLeft: 8,
+  },
+  activeFilterTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: theme.colors.maroonLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.maroon,
+  },
+  activeFilterTagText: {
+    color: theme.colors.maroon,
+    fontSize: 10,
+    fontWeight: '600',
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -309,8 +420,8 @@ const styles = StyleSheet.create({
     gap: COLUMN_GAP,
   },
   listContent: {
-    paddingTop: theme.spacing.sm,
-    paddingBottom: 60,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: 90,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -340,5 +451,28 @@ const styles = StyleSheet.create({
   emptyActions: {
     flexDirection: 'row',
     gap: 10,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: theme.spacing.screenPadding,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.maroon,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.maroonDark,
+  },
+  fabPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.97 }],
+  },
+  fabText: {
+    color: '#FBF7EF',
+    fontWeight: '700',
+    fontSize: 13,
   },
 });

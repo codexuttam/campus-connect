@@ -1,6 +1,6 @@
 import { UserSummary, Post } from '../../feed/types';
 
-export type ExploreCategory = 'all' | 'people' | 'projects' | 'communities';
+export type ExploreCategory = 'all' | 'people' | 'projects' | 'communities' | 'marketplace';
 
 export interface StudentProfile {
   id: string;
