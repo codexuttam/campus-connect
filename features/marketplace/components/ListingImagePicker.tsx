@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, X, Star, Sparkles } from 'lucide-react-native';
+import { Camera, X, Star, Sparkles, ImagePlus } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { theme } from '../../../theme';
 
@@ -42,6 +42,30 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
   onChangeImages,
   maxImages = 5,
 }) => {
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Needed',
+          'CampusConnect requires camera access to take item photos.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const newUri = result.assets[0].uri;
+        onChangeImages([...images, newUri].slice(0, maxImages));
+      }
+    } catch (err: any) {
+      Alert.alert('Camera Error', err?.message || 'Could not launch camera.');
+    }
+  };
+
   const handlePickImages = async () => {
     if (images.length >= maxImages) {
       Alert.alert('Limit Reached', `You can upload up to ${maxImages} images.`);
@@ -108,22 +132,39 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollList}
       >
-        {/* Add photo button */}
+        {/* Add photo buttons: Camera & Gallery */}
         {images.length < maxImages && (
-          <Pressable
-            onPress={handlePickImages}
-            style={({ pressed }) => [
-              styles.addButton,
-              pressed && styles.addButtonPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Add photos from library"
-          >
-            <Camera size={24} color={theme.colors.maroon} strokeWidth={1.8} />
-            <AppText variant="caption" color="secondary" style={styles.addText}>
-              Upload Photo
-            </AppText>
-          </Pressable>
+          <View style={styles.addButtonsGroup}>
+            <Pressable
+              onPress={handlePickImages}
+              style={({ pressed }) => [
+                styles.addButton,
+                pressed && styles.addButtonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Add photos from library"
+            >
+              <ImagePlus size={22} color={theme.colors.maroon} strokeWidth={1.8} />
+              <AppText variant="caption" color="secondary" style={styles.addText}>
+                Gallery
+              </AppText>
+            </Pressable>
+
+            <Pressable
+              onPress={handleTakePhoto}
+              style={({ pressed }) => [
+                styles.addButton,
+                pressed && styles.addButtonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Take photo with camera"
+            >
+              <Camera size={22} color={theme.colors.maroon} strokeWidth={1.8} />
+              <AppText variant="caption" color="secondary" style={styles.addText}>
+                Camera
+              </AppText>
+            </Pressable>
+          </View>
         )}
 
         {/* Selected images preview */}
@@ -223,6 +264,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     paddingVertical: 4,
+  },
+  addButtonsGroup: {
+    flexDirection: 'row',
+    gap: 10,
   },
   addButton: {
     width: 90,
