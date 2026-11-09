@@ -233,6 +233,47 @@ export const MarketplaceFilterSheet: React.FC<MarketplaceFilterSheetProps> = ({
               <AppText variant="captionMedium" color="secondary" style={styles.sectionTitle}>
                 PRICE RANGE ($)
               </AppText>
+
+              {/* Quick preset chips */}
+              <View style={styles.presetChipsRow}>
+                {[
+                  { label: 'Under $25', min: undefined, max: 25 },
+                  { label: '$25–$50', min: 25, max: 50 },
+                  { label: '$50–$100', min: 50, max: 100 },
+                  { label: '$100+', min: 100, max: undefined },
+                ].map((preset) => {
+                  const isActive =
+                    localFilters.minPrice === preset.min &&
+                    localFilters.maxPrice === preset.max;
+                  return (
+                    <Pressable
+                      key={preset.label}
+                      onPress={() =>
+                        setLocalFilters({
+                          ...localFilters,
+                          minPrice: isActive ? undefined : preset.min,
+                          maxPrice: isActive ? undefined : preset.max,
+                        })
+                      }
+                      style={[
+                        styles.presetChip,
+                        isActive && styles.presetChipActive,
+                      ]}
+                    >
+                      <AppText
+                        variant="caption"
+                        style={[
+                          styles.presetChipText,
+                          isActive && styles.presetChipTextActive,
+                        ]}
+                      >
+                        {preset.label}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
               <View style={styles.priceInputsRow}>
                 <View style={styles.priceInputBox}>
                   <AppText variant="caption" color="secondary">
@@ -369,6 +410,32 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   chipTextSelected: {
+    color: '#FBF7EF',
+  },
+  presetChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  presetChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  presetChipActive: {
+    backgroundColor: theme.colors.olive,
+    borderColor: theme.colors.olive,
+  },
+  presetChipText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+  },
+  presetChipTextActive: {
     color: '#FBF7EF',
   },
   priceInputsRow: {
