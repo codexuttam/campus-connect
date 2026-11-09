@@ -320,11 +320,16 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 }}
                 maxLength={80}
               />
-              {errors.title && (
-                <AppText variant="caption" style={styles.fieldError}>
-                  {errors.title}
+              <View style={styles.charCountRow}>
+                {errors.title ? (
+                  <AppText variant="caption" style={styles.fieldError}>
+                    {errors.title}
+                  </AppText>
+                ) : <View />}
+                <AppText variant="caption" color="muted">
+                  {title.length}/80
                 </AppText>
-              )}
+              </View>
             </View>
 
             {/* Category selection */}
