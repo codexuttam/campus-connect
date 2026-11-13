@@ -8,18 +8,69 @@ import {
   MarketplaceReport,
   MarketplaceImage,
 } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { INITIAL_MARKETPLACE_LISTINGS } from './marketplaceMockData';
 import { UserProfile } from '../../../types/auth';
+
+const STORAGE_KEY = 'campusconnect.marketplace.v1';
+const STORAGE_VERSION = 1;
+
+interface PersistedMarketplaceState {
+  version: number;
+  listings: MarketplaceListing[];
+  savedListingIds: string[];
+  reports: MarketplaceReport[];
+}
 
 class MarketplaceApiService {
   private listings: MarketplaceListing[] = [...INITIAL_MARKETPLACE_LISTINGS];
   private savedListingIds: Set<string> = new Set(['listing-2']);
   private reports: MarketplaceReport[] = [];
+  private hydration: Promise<void> | null = null;
+
+  // ================= PERSISTENCE =================
+
+  /** Load persisted marketplace state once, then simulate network latency. */
+  private async ready(latencyMs = 100): Promise<void> {
+    if (!this.hydration) {
+      this.hydration = this.hydrate();
+    }
+    await this.hydration;
+    await new Promise((r) => setTimeout(r, latencyMs));
+  }
+
+  private async hydrate(): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw) as PersistedMarketplaceState;
+      if (state.version !== STORAGE_VERSION) return;
+      this.listings = state.listings;
+      this.savedListingIds = new Set(state.savedListingIds);
+      this.reports = state.reports;
+    } catch {
+      // Corrupt or unavailable storage: fall back to seed data
+    }
+  }
+
+  private async persist(): Promise<void> {
+    try {
+      const state: PersistedMarketplaceState = {
+        version: STORAGE_VERSION,
+        listings: this.listings,
+        savedListingIds: Array.from(this.savedListingIds),
+        reports: this.reports,
+      };
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Persistence is best-effort; in-memory state remains authoritative
+    }
+  }
 
   // ================= FETCH LISTINGS =================
 
   async fetchListings(filters?: MarketplaceFilters): Promise<MarketplaceListing[]> {
-    await new Promise((r) => setTimeout(r, 120));
+    await this.ready(120);
     let items = this.listings.filter((item) => item.status !== 'removed' && item.status !== 'draft');
 
     if (filters) {
@@ -85,7 +136,7 @@ class MarketplaceApiService {
   // ================= LISTING DETAILS =================
 
   async fetchListingDetails(id: string): Promise<MarketplaceListing> {
-    await new Promise((r) => setTimeout(r, 100));
+    await this.ready(100);
     const item = this.listings.find((l) => l.id === id);
     if (!item) {
       throw new Error('Listing not found');
@@ -106,7 +157,7 @@ class MarketplaceApiService {
     input: CreateListingInput,
     user: UserProfile
   ): Promise<MarketplaceListing> {
-    await new Promise((r) => setTimeout(r, 200));
+    await this.ready(200);
 
     const listingId = `listing-${Date.now()}`;
     const images: MarketplaceImage[] = (input.images || []).map((uri, index) => ({
@@ -156,6 +207,7 @@ class MarketplaceApiService {
 
     // Prepend to listings
     this.listings.unshift(newListing);
+    await this.persist();
     return newListing;
   }
 
@@ -166,7 +218,7 @@ class MarketplaceApiService {
     input: UpdateListingInput,
     userId: string
   ): Promise<MarketplaceListing> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(150);
     const index = this.listings.findIndex((l) => l.id === id);
     if (index === -1) {
       throw new Error('Listing not found');
@@ -213,6 +265,7 @@ class MarketplaceApiService {
     };
 
     this.listings[index] = updated;
+    await this.persist();
     return {
       ...updated,
       isSaved: this.savedListingIds.has(updated.id),
@@ -222,7 +275,7 @@ class MarketplaceApiService {
   // ================= DELETE LISTING =================
 
   async deleteListing(id: string, userId: string): Promise<{ success: boolean }> {
-    await new Promise((r) => setTimeout(r, 120));
+    await this.ready(120);
     const item = this.listings.find((l) => l.id === id);
     if (!item) {
       throw new Error('Listing not found');
@@ -235,13 +288,14 @@ class MarketplaceApiService {
     item.status = 'removed';
     this.listings = this.listings.filter((l) => l.id !== id);
     this.savedListingIds.delete(id);
+    await this.persist();
     return { success: true };
   }
 
   // ================= SAVE / BOOKMARK =================
 
   async toggleSaveListing(id: string): Promise<{ isSaved: boolean }> {
-    await new Promise((r) => setTimeout(r, 80));
+    await this.ready(80);
     const item = this.listings.find((l) => l.id === id);
     if (!item) {
       throw new Error('Listing not found');
@@ -258,13 +312,14 @@ class MarketplaceApiService {
       isSaved = true;
     }
 
+    await this.persist();
     return { isSaved };
   }
 
   // ================= SAVED LISTINGS =================
 
   async fetchSavedListings(): Promise<MarketplaceListing[]> {
-    await new Promise((r) => setTimeout(r, 100));
+    await this.ready(100);
     return this.listings
       .filter((l) => this.savedListingIds.has(l.id) && l.status !== 'removed')
       .map((item) => ({
@@ -279,7 +334,7 @@ class MarketplaceApiService {
     userId: string,
     status?: MarketplaceStatus
   ): Promise<MarketplaceListing[]> {
-    await new Promise((r) => setTimeout(r, 100));
+    await this.ready(100);
     const effectiveUserId = userId || 'user-local';
 
     let items = this.listings.filter(
@@ -303,7 +358,7 @@ class MarketplaceApiService {
     status: MarketplaceStatus,
     userId: string
   ): Promise<MarketplaceListing> {
-    await new Promise((r) => setTimeout(r, 120));
+    await this.ready(120);
     const index = this.listings.findIndex((l) => l.id === id);
     if (index === -1) {
       throw new Error('Listing not found');
@@ -316,6 +371,7 @@ class MarketplaceApiService {
 
     current.status = status;
     current.updatedAt = new Date().toISOString();
+    await this.persist();
 
     return {
       ...current,
@@ -329,7 +385,7 @@ class MarketplaceApiService {
     input: CreateReportInput,
     reporterId: string
   ): Promise<{ success: boolean; reportId: string }> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(150);
     const reportId = `report-${Date.now()}`;
     const newReport: MarketplaceReport = {
       id: reportId,
@@ -342,6 +398,7 @@ class MarketplaceApiService {
     };
 
     this.reports.push(newReport);
+    await this.persist();
     return { success: true, reportId };
   }
 }
