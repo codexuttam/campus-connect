@@ -5,12 +5,12 @@ import {
   Pressable,
   Image,
   ScrollView,
-  Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, X, Star, Sparkles, ImagePlus } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface ListingImagePickerProps {
   images: string[];
@@ -46,7 +46,7 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Needed',
           'CampusConnect requires camera access to take item photos.'
         );
@@ -62,20 +62,20 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
         onChangeImages([...images, newUri].slice(0, maxImages));
       }
     } catch (err: any) {
-      Alert.alert('Camera Error', err?.message || 'Could not launch camera.');
+      showAlert('Camera Error', err?.message || 'Could not launch camera.');
     }
   };
 
   const handlePickImages = async () => {
     if (images.length >= maxImages) {
-      Alert.alert('Limit Reached', `You can upload up to ${maxImages} images.`);
+      showAlert('Limit Reached', `You can upload up to ${maxImages} images.`);
       return;
     }
 
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Needed',
           'CampusConnect requires media library access to select item photos.'
         );
@@ -95,7 +95,7 @@ export const ListingImagePicker: React.FC<ListingImagePickerProps> = ({
         onChangeImages([...images, ...newUris].slice(0, maxImages));
       }
     } catch (err: any) {
-      Alert.alert('Photo Selection Error', err?.message || 'Could not select images.');
+      showAlert('Photo Selection Error', err?.message || 'Could not select images.');
     }
   };
 

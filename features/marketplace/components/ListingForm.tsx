@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -31,6 +30,7 @@ import {
 } from '../utils/formatters';
 import { validateListingInput } from '../utils/validation';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface ListingFormProps {
   initialValues?: Partial<CreateListingInput>;
@@ -112,14 +112,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     const { isValid, errors: finalErrors } = validateListingInput(currentPayload);
     if (!isValid) {
       setErrors(finalErrors);
-      Alert.alert('Validation Error', Object.values(finalErrors)[0]);
+      showAlert('Validation Error', Object.values(finalErrors)[0]);
       return;
     }
 
     try {
       await onSubmit({ ...currentPayload, status: 'active' });
     } catch (err: any) {
-      Alert.alert('Submission Error', err?.message || 'Could not publish listing.');
+      showAlert('Submission Error', err?.message || 'Could not publish listing.');
     }
   };
 
@@ -127,14 +127,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     const { isValid, errors: finalErrors } = validateListingInput(currentPayload);
     if (!isValid) {
       setErrors(finalErrors);
-      Alert.alert('Validation Error', Object.values(finalErrors)[0]);
+      showAlert('Validation Error', Object.values(finalErrors)[0]);
       return;
     }
 
     try {
       await onSubmit({ ...currentPayload, status: 'draft' });
     } catch (err: any) {
-      Alert.alert('Draft Error', err?.message || 'Could not save draft.');
+      showAlert('Draft Error', err?.message || 'Could not save draft.');
     }
   };
 

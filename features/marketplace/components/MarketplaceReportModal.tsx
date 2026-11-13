@@ -6,13 +6,13 @@ import {
   Pressable,
   TextInput,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { X, ShieldAlert, Check } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { AppButton } from '../../../components/ui/AppButton';
 import { MarketplaceReportReason } from '../types';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface MarketplaceReportModalProps {
   visible: boolean;
@@ -73,13 +73,13 @@ export const MarketplaceReportModal: React.FC<MarketplaceReportModalProps> = ({
   const handleSubmit = async () => {
     try {
       await onSubmitReport(selectedReason, details.trim() || undefined);
-      Alert.alert(
+      showAlert(
         'Report Submitted',
         'Thank you for keeping CampusConnect safe. Our student moderation council will review this listing shortly.',
         [{ text: 'OK', onPress: onClose }]
       );
     } catch (err: any) {
-      Alert.alert('Submission Error', err?.message || 'Could not submit report.');
+      showAlert('Submission Error', err?.message || 'Could not submit report.');
     }
   };
 

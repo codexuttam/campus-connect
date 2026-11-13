@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Pressable,
   Image,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, MessageSquare, ShieldCheck, Bookmark, CheckCircle2, Copy } from 'lucide-react-native';
@@ -16,6 +15,7 @@ import { AppAvatar } from '../../../components/ui/AppAvatar';
 import { MarketplaceListing, MarketplaceConversationContext } from '../types';
 import { formatPrice } from '../utils/formatters';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface SellerContactModalProps {
   visible: boolean;
@@ -56,7 +56,7 @@ export const SellerContactModal: React.FC<SellerContactModalProps> = ({
 
   const handleLogAvailability = () => {
     setInquiryLogged(true);
-    Alert.alert(
+    showAlert(
       'Availability Request Queued',
       `An interest request for "${listing.title}" has been placed in your activity log. Once direct messaging unlocks in the student network, you can immediately coordinate meetup with ${listing.seller.fullName}.`
     );

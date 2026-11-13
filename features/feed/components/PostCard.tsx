@@ -6,7 +6,6 @@ import {
   Image,
   Dimensions,
   Share,
-  Alert,
 } from 'react-native';
 import { MoreHorizontal, Flag, Trash2, ShieldCheck } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
@@ -17,6 +16,7 @@ import { IconButton } from '../../../components/ui/IconButton';
 import { PostActions } from './PostActions';
 import { Post } from '../types';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface PostCardProps {
   post: Post;
@@ -63,7 +63,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   const handleMorePress = () => {
     if (post.isOwnPost) {
-      Alert.alert('Post Options', 'Manage your published post', [
+      showAlert('Post Options', 'Manage your published post', [
         {
           text: 'Delete Post',
           style: 'destructive',
@@ -72,7 +72,7 @@ export const PostCard: React.FC<PostCardProps> = ({
         { text: 'Cancel', style: 'cancel' },
       ]);
     } else {
-      Alert.alert('Report Post', 'Flag this content for campus review', [
+      showAlert('Report Post', 'Flag this content for campus review', [
         {
           text: 'Inappropriate Content',
           style: 'destructive',

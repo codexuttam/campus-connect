@@ -7,7 +7,6 @@ import {
   Image,
   Pressable,
   Platform,
-  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Bookmark, Users, Sparkles, FolderGit2, Check, ArrowRight } from 'lucide-react-native';
@@ -18,6 +17,7 @@ import { AppAvatar } from '../../../components/ui/AppAvatar';
 import { IconButton } from '../../../components/ui/IconButton';
 import { Project } from '../types';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface ProjectDetailsModalProps {
   project: Project | null;
@@ -37,7 +37,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
   if (!visible || !project) return null;
 
   const handleApply = () => {
-    Alert.alert(
+    showAlert(
       'Collaboration Request Sent',
       `Your profile has been forwarded to ${project.creator.fullName} for review on the Collaboration Hub.`,
       [{ text: 'Understood' }]

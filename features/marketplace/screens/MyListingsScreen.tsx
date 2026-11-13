@@ -5,7 +5,6 @@ import {
   FlatList,
   Pressable,
   Image,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -26,6 +25,7 @@ import {
 import { MarketplaceListing, MarketplaceStatus } from '../types';
 import { formatPrice, formatListingDate } from '../utils/formatters';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 type MyListingsTab = 'active' | 'sold' | 'draft';
 
@@ -53,7 +53,7 @@ export const MyListingsScreen: React.FC = () => {
   };
 
   const handleDelete = (listing: MarketplaceListing) => {
-    Alert.alert(
+    showAlert(
       'Delete Listing',
       `Are you sure you want to delete "${listing.title}"? This cannot be undone.`,
       [

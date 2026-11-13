@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   Share,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -46,6 +45,7 @@ import {
 import { formatPrice, formatListingDate, getCategoryLabel } from '../utils/formatters';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface ProductDetailsScreenProps {
   id: string;
@@ -130,7 +130,7 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
     .slice(0, 4);
 
   const handleDeleteListing = () => {
-    Alert.alert(
+    showAlert(
       'Remove Listing',
       'Are you sure you want to permanently delete this listing? This action cannot be undone.',
       [

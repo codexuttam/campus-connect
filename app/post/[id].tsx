@@ -7,7 +7,6 @@ import {
   TextInput,
   Pressable,
   Share,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -42,6 +41,7 @@ import {
   useReportPost,
 } from '../../features/feed/hooks/useFeed';
 import { theme } from '../../theme';
+import { showAlert } from '../../services/dialog';
 
 export default function PostDetailsScreen() {
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function PostDetailsScreen() {
   const handleMoreActions = () => {
     if (!post) return;
     if (post.isOwnPost) {
-      Alert.alert('Post Options', 'Manage this post', [
+      showAlert('Post Options', 'Manage this post', [
         {
           text: 'Delete Post',
           style: 'destructive',
@@ -99,13 +99,13 @@ export default function PostDetailsScreen() {
         { text: 'Cancel', style: 'cancel' },
       ]);
     } else {
-      Alert.alert('Report Post', 'Flag this content for campus moderation', [
+      showAlert('Report Post', 'Flag this content for campus moderation', [
         {
           text: 'Report Content',
           style: 'destructive',
           onPress: () => {
             reportMutation.mutate({ postId: post.id, reason: 'Reported by user' });
-            Alert.alert('Thank you', 'Our campus moderation team has been notified.');
+            showAlert('Thank you', 'Our campus moderation team has been notified.');
           },
         },
         { text: 'Cancel', style: 'cancel' },

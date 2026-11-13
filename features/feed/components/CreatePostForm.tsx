@@ -6,7 +6,6 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -26,6 +25,7 @@ import { AppBadge } from '../../../components/ui/AppBadge';
 import { PostCategory, PostVisibility } from '../types';
 import { useAuth } from '../../../hooks/useAuth';
 import { theme } from '../../../theme';
+import { showAlert } from '../../../services/dialog';
 
 export interface CreatePostFormProps {
   onPublish: (data: {
@@ -74,7 +74,7 @@ export const CreatePostForm: React.FC<CreatePostFormProps> = ({
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'CampusConnect requires media library permissions to attach photos.'
         );
@@ -93,7 +93,7 @@ export const CreatePostForm: React.FC<CreatePostFormProps> = ({
         setSelectedImages((prev) => [...prev, ...newUris].slice(0, 4));
       }
     } catch (err: any) {
-      Alert.alert('Image Picker Error', err?.message || 'Could not access photos.');
+      showAlert('Image Picker Error', err?.message || 'Could not access photos.');
     }
   };
 
