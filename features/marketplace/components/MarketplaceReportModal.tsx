@@ -45,7 +45,7 @@ const REPORT_REASONS: { id: MarketplaceReportReason; label: string; description:
   },
   {
     id: 'harassment_or_spam',
-    label: 'Harassment or Duplicate Spam',
+    label: 'Spam',
     description: 'Repeated duplicate listings or unsolicited commercial solicitation.',
   },
   {
@@ -55,7 +55,7 @@ const REPORT_REASONS: { id: MarketplaceReportReason; label: string; description:
   },
   {
     id: 'other',
-    label: 'Other Campus Policy Violation',
+    label: 'Other',
     description: 'Any other safety or university policy concern.',
   },
 ];
@@ -121,35 +121,35 @@ export const MarketplaceReportModal: React.FC<MarketplaceReportModalProps> = ({
               SELECT PRIMARY REASON
             </AppText>
 
-            <View style={styles.reasonsList}>
+            <View style={styles.reasonChips}>
               {REPORT_REASONS.map((r) => {
                 const isSelected = selectedReason === r.id;
                 return (
                   <Pressable
                     key={r.id}
                     onPress={() => setSelectedReason(r.id)}
-                    style={[
-                      styles.reasonOption,
-                      isSelected && styles.reasonOptionSelected,
-                    ]}
+                    style={[styles.reasonChip, isSelected && styles.reasonChipSelected]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={r.label}
                   >
-                    <View style={styles.radioRow}>
-                      <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]}>
-                        {isSelected && <View style={styles.radioInner} />}
-                      </View>
-                      <View style={styles.reasonTextWrap}>
-                        <AppText variant="bodySmallMedium" color="primary">
-                          {r.label}
-                        </AppText>
-                        <AppText variant="caption" color="secondary">
-                          {r.description}
-                        </AppText>
-                      </View>
-                    </View>
+                    <AppText
+                      variant="caption"
+                      style={[styles.reasonChipText, isSelected && styles.reasonChipTextSelected]}
+                    >
+                      {r.label}
+                    </AppText>
                   </Pressable>
                 );
               })}
             </View>
+
+            {/* Progressive disclosure: only the selected reason's description */}
+            {selectedReason && (
+              <AppText variant="caption" color="secondary" style={styles.reasonHint}>
+                {REPORT_REASONS.find((r) => r.id === selectedReason)?.description}
+              </AppText>
+            )}
 
             <AppText variant="captionMedium" color="secondary" style={styles.sectionLabel}>
               ADDITIONAL CONTEXT (OPTIONAL)
@@ -240,47 +240,35 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontSize: 11,
   },
-  reasonsList: {
+  reasonChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
-  reasonOption: {
-    padding: 10,
-    borderRadius: theme.radius.md,
+  reasonChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: theme.radius.full,
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  reasonOptionSelected: {
-    borderColor: theme.colors.maroon,
-    backgroundColor: theme.colors.card,
-  },
-  radioRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  radioCircleActive: {
-    borderColor: theme.colors.maroon,
-  },
-  radioInner: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
+  reasonChipSelected: {
     backgroundColor: theme.colors.maroon,
+    borderColor: theme.colors.maroon,
   },
-  reasonTextWrap: {
-    flex: 1,
+  reasonChipText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+  },
+  reasonChipTextSelected: {
+    color: '#FBF7EF',
+  },
+  reasonHint: {
+    marginBottom: theme.spacing.md,
+    lineHeight: 17,
   },
   detailsInput: {
     backgroundColor: theme.colors.surface,
