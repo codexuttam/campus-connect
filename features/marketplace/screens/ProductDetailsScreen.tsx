@@ -126,7 +126,13 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
 
   const similarListings = allListings
     .filter((item) => item.id !== listing.id && item.status === 'active')
-    .sort((a, b) => (a.category === listing.category ? -1 : 1))
+    .sort((a, b) => {
+      // Same-category items first; within each group, newest first
+      const aMatch = a.category === listing.category ? 0 : 1;
+      const bMatch = b.category === listing.category ? 0 : 1;
+      if (aMatch !== bMatch) return aMatch - bMatch;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })
     .slice(0, 4);
 
   const handleDeleteListing = () => {
