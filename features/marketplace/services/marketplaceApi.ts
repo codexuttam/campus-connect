@@ -11,6 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { INITIAL_MARKETPLACE_LISTINGS } from './marketplaceMockData';
 import { UserProfile } from '../../../types/auth';
+import { MARKETPLACE_CURRENCY } from '../utils/formatters';
 
 const STORAGE_KEY = 'campusconnect.marketplace.v1';
 const STORAGE_VERSION = 1;
@@ -181,7 +182,7 @@ class MarketplaceApiService {
       listingType: input.listingType,
       condition: input.condition,
       price: input.listingType === 'free' ? 0 : Number(input.price) || 0,
-      currency: input.currency || '$',
+      currency: input.currency || MARKETPLACE_CURRENCY,
       exchangeFor: input.listingType === 'exchange' ? input.exchangeFor?.trim() : undefined,
       status: input.status || 'active',
       images,

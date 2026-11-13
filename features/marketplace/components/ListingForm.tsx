@@ -24,6 +24,7 @@ import {
   CATEGORY_ITEMS,
   CONDITION_ITEMS,
   LISTING_TYPE_ITEMS,
+  MARKETPLACE_CURRENCY,
   formatPrice,
   getCategoryLabel,
   getConditionLabel,
@@ -75,7 +76,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     listingType,
     condition,
     price: listingType === 'free' ? 0 : Number(price) || 0,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     exchangeFor: listingType === 'exchange' ? exchangeFor : undefined,
     images,
   };
@@ -400,7 +401,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             {listingType === 'sell' && (
               <View style={styles.fieldGroup}>
                 <AppText variant="captionMedium" color="secondary" style={styles.fieldLabel}>
-                  PRICE ($) *
+                  PRICE ({MARKETPLACE_CURRENCY}) *
                 </AppText>
                 <TextInput
                   style={[styles.input, errors.price && styles.inputError]}
@@ -542,7 +543,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                   <AppText variant="h2" color="primary" style={styles.reviewPrice}>
                     {formatPrice(
                       listingType === 'free' ? 0 : Number(price),
-                      '$',
+                      MARKETPLACE_CURRENCY,
                       listingType,
                       exchangeFor
                     )}

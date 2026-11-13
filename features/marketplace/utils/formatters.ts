@@ -5,6 +5,17 @@ import {
   MarketplaceStatus,
 } from '../types';
 
+/**
+ * Single source of truth for the marketplace currency symbol.
+ * Change this one value (e.g. to '₹') to switch the whole marketplace.
+ */
+export const MARKETPLACE_CURRENCY = '$';
+
+/** Formats a plain amount with the marketplace currency, e.g. $1,200 */
+export function formatAmount(amount: number): string {
+  return `${MARKETPLACE_CURRENCY}${Number(amount).toLocaleString()}`;
+}
+
 export const CATEGORY_ITEMS: { id: MarketplaceCategory; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'books', label: 'Books' },
@@ -31,7 +42,7 @@ export const LISTING_TYPE_ITEMS: { id: MarketplaceListingType; label: string }[]
 
 export function formatPrice(
   price: number,
-  currency = '$',
+  currency = MARKETPLACE_CURRENCY,
   listingType: MarketplaceListingType = 'sell',
   exchangeFor?: string
 ): string {

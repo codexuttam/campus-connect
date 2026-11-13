@@ -1,4 +1,5 @@
 import { MarketplaceListing } from '../types';
+import { MARKETPLACE_CURRENCY } from '../utils/formatters';
 
 export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
   {
@@ -13,7 +14,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'like_new',
     price: 45,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'active',
     images: [
       {
@@ -64,7 +65,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'like_new',
     price: 380,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'active',
     images: [
       {
@@ -115,7 +116,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'exchange',
     condition: 'good',
     price: 0,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     exchangeFor: 'Strang Linear Algebra or Rosen Discrete Math',
     status: 'active',
     images: [
@@ -160,7 +161,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'free',
     condition: 'good',
     price: 0,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'active',
     images: [
       {
@@ -204,7 +205,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'good',
     price: 150,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'active',
     images: [
       {
@@ -255,7 +256,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'like_new',
     price: 75,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'active',
     images: [
       {
@@ -299,7 +300,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'good',
     price: 35,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'sold',
     images: [
       {
@@ -343,7 +344,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'like_new',
     price: 18,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'active',
     images: [
       {
@@ -386,7 +387,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'sell',
     condition: 'good',
     price: 55,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'sold',
     images: [
       {
@@ -429,7 +430,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     listingType: 'free',
     condition: 'new',
     price: 0,
-    currency: '$',
+    currency: MARKETPLACE_CURRENCY,
     status: 'draft',
     images: [
       {

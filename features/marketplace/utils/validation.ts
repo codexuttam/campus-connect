@@ -1,4 +1,5 @@
 import { CreateListingInput } from '../types';
+import { formatAmount } from './formatters';
 
 export const PROHIBITED_KEYWORDS = [
   'weapon',
@@ -29,6 +30,8 @@ export const PROHIBITED_KEYWORDS = [
   'id card',
   'fake id',
 ];
+
+export const MAX_LISTING_PRICE = 10000;
 
 export interface ValidationResult {
   isValid: boolean;
@@ -82,9 +85,9 @@ export function validateListingInput(input: Partial<CreateListingInput>): Valida
     if (input.listingType === 'sell') {
       const price = Number(input.price);
       if (isNaN(price) || price <= 0) {
-        errors.price = 'Please enter a valid price greater than $0.';
-      } else if (price > 10000) {
-        errors.price = 'Price exceeds maximum campus marketplace limit ($10,000).';
+        errors.price = `Please enter a valid price greater than ${formatAmount(0)}.`;
+      } else if (price > MAX_LISTING_PRICE) {
+        errors.price = `Price exceeds maximum campus marketplace limit (${formatAmount(MAX_LISTING_PRICE)}).`;
       }
     } else if (input.listingType === 'exchange') {
       const trimmedExchange = input.exchangeFor?.trim() || '';

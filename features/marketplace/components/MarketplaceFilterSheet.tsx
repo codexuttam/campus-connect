@@ -16,7 +16,12 @@ import {
   MarketplaceListingType,
   MarketplaceSortOption,
 } from '../types';
-import { CONDITION_ITEMS, LISTING_TYPE_ITEMS } from '../utils/formatters';
+import {
+  CONDITION_ITEMS,
+  LISTING_TYPE_ITEMS,
+  MARKETPLACE_CURRENCY,
+  formatAmount,
+} from '../utils/formatters';
 import { theme } from '../../../theme';
 
 export interface MarketplaceFilterSheetProps {
@@ -231,16 +236,16 @@ export const MarketplaceFilterSheet: React.FC<MarketplaceFilterSheetProps> = ({
             {/* Price Range */}
             <View style={styles.section}>
               <AppText variant="captionMedium" color="secondary" style={styles.sectionTitle}>
-                PRICE RANGE ($)
+                PRICE RANGE ({MARKETPLACE_CURRENCY})
               </AppText>
 
               {/* Quick preset chips */}
               <View style={styles.presetChipsRow}>
                 {[
-                  { label: 'Under $25', min: undefined, max: 25 },
-                  { label: '$25–$50', min: 25, max: 50 },
-                  { label: '$50–$100', min: 50, max: 100 },
-                  { label: '$100+', min: 100, max: undefined },
+                  { label: `Under ${formatAmount(25)}`, min: undefined, max: 25 },
+                  { label: `${formatAmount(25)}–${formatAmount(50)}`, min: 25, max: 50 },
+                  { label: `${formatAmount(50)}–${formatAmount(100)}`, min: 50, max: 100 },
+                  { label: `${formatAmount(100)}+`, min: 100, max: undefined },
                 ].map((preset) => {
                   const isActive =
                     localFilters.minPrice === preset.min &&
