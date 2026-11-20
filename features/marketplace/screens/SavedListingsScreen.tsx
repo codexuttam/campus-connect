@@ -14,6 +14,7 @@ import { LoadingIndicator } from '../../../components/ui/LoadingIndicator';
 import { AppText } from '../../../components/ui/AppText';
 import { AppButton } from '../../../components/ui/AppButton';
 import { MarketplaceProductCard } from '../components/MarketplaceProductCard';
+import { MarketplaceProductSkeletonGrid } from '../components/MarketplaceProductSkeleton';
 import { useSavedListings, useToggleSaveListing } from '../hooks/useMarketplace';
 import { MarketplaceListing } from '../types';
 import { theme } from '../../../theme';
@@ -60,9 +61,7 @@ export const SavedListingsScreen: React.FC = () => {
       />
 
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator size="large" label="Loading saved items..." />
-        </View>
+        <MarketplaceProductSkeletonGrid cardWidth={cardWidth} count={4} />
       ) : (
         <FlatList
           data={savedListings}

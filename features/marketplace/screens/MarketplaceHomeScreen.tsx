@@ -20,6 +20,7 @@ import {
   MarketplaceCategoryChips,
   MarketplaceProductCard,
   MarketplaceFilterSheet,
+  MarketplaceProductSkeletonGrid,
 } from '../components';
 import {
   useMarketplaceListings,
@@ -32,7 +33,7 @@ import {
   MarketplaceFilters,
   MarketplaceListing,
 } from '../types';
-import { getConditionLabel } from '../utils/formatters';
+import { getConditionLabel, MARKETPLACE_CURRENCY } from '../utils/formatters';
 import { theme } from '../../../theme';
 
 const COLUMN_GAP = 12;
@@ -244,7 +245,7 @@ export const MarketplaceHomeScreen: React.FC = () => {
                 style={styles.activeFilterTag}
               >
                 <AppText variant="caption" style={styles.activeFilterTagText}>
-                  ${filters.minPrice || 0}–${filters.maxPrice || 'Any'}
+                  {MARKETPLACE_CURRENCY}{filters.minPrice || 0}–{filters.maxPrice ? `${MARKETPLACE_CURRENCY}${filters.maxPrice}` : 'Any'}
                 </AppText>
                 <X size={11} color={theme.colors.maroon} />
               </Pressable>
@@ -255,9 +256,7 @@ export const MarketplaceHomeScreen: React.FC = () => {
 
       {/* Two-Column Responsive Virtualized Grid */}
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator size="large" label="Browsing campus marketplace..." />
-        </View>
+        <MarketplaceProductSkeletonGrid cardWidth={cardWidth} count={6} />
       ) : (
         <FlatList
           data={displayedListings}
