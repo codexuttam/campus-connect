@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
-import { CheckCircle2, ShieldCheck, MapPin } from 'lucide-react-native';
+import { CheckCircle2, ShieldCheck, Ban } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { AppAvatar } from '../../../components/ui/AppAvatar';
 import { AppCard } from '../../../components/ui/AppCard';
@@ -10,11 +10,13 @@ import { theme } from '../../../theme';
 export interface SellerInfoCardProps {
   seller: MarketplaceSeller;
   onPressProfile?: () => void;
+  onBlockSeller?: () => void;
 }
 
 export const SellerInfoCard: React.FC<SellerInfoCardProps> = ({
   seller,
   onPressProfile,
+  onBlockSeller,
 }) => {
   return (
     <AppCard variant="default" padding="md" style={styles.card}>
@@ -73,6 +75,23 @@ export const SellerInfoCard: React.FC<SellerInfoCardProps> = ({
           Campus safety reminder: Meet in daylight at verified campus spots (Student Union, main library, or academic cafes).
         </AppText>
       </View>
+
+      {onBlockSeller && (
+        <View style={styles.blockRow}>
+          <Pressable
+            onPress={onBlockSeller}
+            style={styles.blockButton}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={`Block ${seller.fullName}`}
+          >
+            <Ban size={12} color={theme.colors.textSecondary} />
+            <AppText variant="caption" color="secondary" style={styles.blockText}>
+              Hide listings from {seller.fullName.split(' ')[0]}
+            </AppText>
+          </Pressable>
+        </View>
+      )}
     </AppCard>
   );
 };
@@ -132,5 +151,21 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     lineHeight: 15,
+  },
+  blockRow: {
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.borderSubtle,
+    alignItems: 'flex-start',
+  },
+  blockButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 2,
+  },
+  blockText: {
+    fontSize: 11,
   },
 });

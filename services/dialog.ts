@@ -44,3 +44,4 @@ export function showAlert(title: string, message?: string, buttons?: AlertButton
   }
   cancelButton?.onPress?.();
 }
+

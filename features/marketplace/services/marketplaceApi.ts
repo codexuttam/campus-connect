@@ -21,12 +21,14 @@ interface PersistedMarketplaceState {
   listings: MarketplaceListing[];
   savedListingIds: string[];
   reports: MarketplaceReport[];
+  blockedSellerIds?: string[];
 }
 
 class MarketplaceApiService {
   private listings: MarketplaceListing[] = [...INITIAL_MARKETPLACE_LISTINGS];
   private savedListingIds: Set<string> = new Set(['listing-2']);
   private reports: MarketplaceReport[] = [];
+  private blockedSellerIds: Set<string> = new Set();
   private hydration: Promise<void> | null = null;
 
   // ================= PERSISTENCE =================
@@ -49,6 +51,7 @@ class MarketplaceApiService {
       this.listings = state.listings;
       this.savedListingIds = new Set(state.savedListingIds);
       this.reports = state.reports;
+      this.blockedSellerIds = new Set(state.blockedSellerIds || []);
     } catch {
       // Corrupt or unavailable storage: fall back to seed data
     }
@@ -61,6 +64,7 @@ class MarketplaceApiService {
         listings: this.listings,
         savedListingIds: Array.from(this.savedListingIds),
         reports: this.reports,
+        blockedSellerIds: Array.from(this.blockedSellerIds),
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
@@ -72,7 +76,12 @@ class MarketplaceApiService {
 
   async fetchListings(filters?: MarketplaceFilters): Promise<MarketplaceListing[]> {
     await this.ready(120);
-    let items = this.listings.filter((item) => item.status !== 'removed' && item.status !== 'draft');
+    let items = this.listings.filter(
+      (item) =>
+        item.status !== 'removed' &&
+        item.status !== 'draft' &&
+        !this.blockedSellerIds.has(item.sellerId)
+    );
 
     if (filters) {
       // Category Filter
@@ -159,6 +168,24 @@ class MarketplaceApiService {
     user: UserProfile
   ): Promise<MarketplaceListing> {
     await this.ready(200);
+
+    const sellerId = user.id || 'user-local';
+    const normalizedTitle = input.title.trim().toLowerCase();
+
+    // Spam & duplicate listing prevention for active listings
+    if ((input.status || 'active') === 'active') {
+      const hasDuplicate = this.listings.some(
+        (l) =>
+          l.sellerId === sellerId &&
+          l.status === 'active' &&
+          l.title.trim().toLowerCase() === normalizedTitle
+      );
+      if (hasDuplicate) {
+        throw new Error(
+          'Duplicate listing detected: You already have an active listing with this exact title.'
+        );
+      }
+    }
 
     const listingId = `listing-${Date.now()}`;
     const images: MarketplaceImage[] = (input.images || []).map((uri, index) => ({
@@ -401,6 +428,27 @@ class MarketplaceApiService {
     this.reports.push(newReport);
     await this.persist();
     return { success: true, reportId };
+  }
+
+  // ================= BLOCK / UNBLOCK SELLER =================
+
+  async blockSeller(sellerId: string): Promise<{ blockedSellerIds: string[] }> {
+    await this.ready(80);
+    this.blockedSellerIds.add(sellerId);
+    await this.persist();
+    return { blockedSellerIds: Array.from(this.blockedSellerIds) };
+  }
+
+  async unblockSeller(sellerId: string): Promise<{ blockedSellerIds: string[] }> {
+    await this.ready(80);
+    this.blockedSellerIds.delete(sellerId);
+    await this.persist();
+    return { blockedSellerIds: Array.from(this.blockedSellerIds) };
+  }
+
+  async fetchBlockedSellerIds(): Promise<string[]> {
+    await this.ready(40);
+    return Array.from(this.blockedSellerIds);
   }
 }
 

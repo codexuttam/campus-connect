@@ -41,6 +41,7 @@ import {
   useMarkListingStatus,
   useDeleteListing,
   useReportListing,
+  useBlockSeller,
 } from '../hooks/useMarketplace';
 import { formatPrice, formatListingDate, getCategoryLabel } from '../utils/formatters';
 import { useAuthStore } from '../../../store/useAuthStore';
@@ -66,6 +67,7 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
   const markStatusMutation = useMarkListingStatus();
   const deleteMutation = useDeleteListing();
   const reportMutation = useReportListing();
+  const blockSellerMutation = useBlockSeller();
 
   if (isLoading) {
     return (
@@ -146,6 +148,24 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
           style: 'destructive',
           onPress: async () => {
             await deleteMutation.mutateAsync(listing.id);
+            router.back();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleBlockSeller = () => {
+    showAlert(
+      'Block Seller',
+      `Hide all marketplace listings from ${listing.seller.fullName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block Seller',
+          style: 'destructive',
+          onPress: async () => {
+            await blockSellerMutation.mutateAsync(listing.sellerId);
             router.back();
           },
         },
@@ -292,7 +312,10 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
             <AppText variant="captionMedium" color="secondary" style={styles.sectionHeader}>
               COLLEGE SELLER
             </AppText>
-            <SellerInfoCard seller={listing.seller} />
+            <SellerInfoCard
+              seller={listing.seller}
+              onBlockSeller={!isOwner ? handleBlockSeller : undefined}
+            />
           </View>
 
           {/* Owner Management Controls (For listing owner) */}

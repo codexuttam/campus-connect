@@ -158,3 +158,15 @@ export function useReportListing() {
   });
 }
 
+export function useBlockSeller() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sellerId: string) => marketplaceApi.blockSeller(sellerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MARKETPLACE_QUERY_KEYS.all });
+    },
+  });
+}
+
+
