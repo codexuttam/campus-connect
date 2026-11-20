@@ -1,7 +1,12 @@
-import React from 'react';
-import { View, TextInput, StyleSheet, Pressable } from 'react-native';
-import { Search, X, SlidersHorizontal } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, StyleSheet, Pressable, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Search, X, SlidersHorizontal, Clock } from 'lucide-react-native';
+import { AppText } from '../../../components/ui/AppText';
 import { theme } from '../../../theme';
+
+const RECENT_SEARCHES_KEY = 'campusconnect.marketplace.recentSearches.v1';
+const DEFAULT_RECENT = ['Campbell Biology', 'iPad Pencil', 'Study Lamp'];
 
 export interface MarketplaceSearchBarProps {
   value: string;
@@ -20,70 +25,174 @@ export const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
   hasActiveFilters = false,
   placeholder = 'Search textbooks, electronics, dorm items...',
 }) => {
+  const [recentSearches, setRecentSearches] = useState<string[]>(DEFAULT_RECENT);
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(RECENT_SEARCHES_KEY)
+      .then((raw) => {
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) setRecentSearches(parsed);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const persistRecent = (next: string[]) => {
+    setRecentSearches(next);
+    AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next)).catch(() => {});
+  };
+
+  const recordSearch = (term: string) => {
+    const trimmed = term.trim();
+    if (trimmed.length < 2) return;
+    const next = [
+      trimmed,
+      ...recentSearches.filter((item) => item.toLowerCase() !== trimmed.toLowerCase()),
+    ].slice(0, 6);
+    persistRecent(next);
+  };
+
+  const removeRecent = (term: string) => {
+    persistRecent(recentSearches.filter((item) => item !== term));
+  };
+
+  const showRecentRow = (isFocused || value.trim().length > 0) && recentSearches.length > 0;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <Search
-          size={18}
-          color={theme.colors.textMuted}
-          strokeWidth={theme.icons.strokeWidth.default}
-          style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={theme.colors.textMuted}
-          returnKeyType="search"
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="never"
-        />
-        {value.length > 0 && onClear && (
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
+        <View style={styles.inputContainer}>
+          <Search
+            size={18}
+            color={theme.colors.textMuted}
+            strokeWidth={theme.icons.strokeWidth.default}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={onChangeText}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => {
+              setIsFocused(false);
+              recordSearch(value);
+            }}
+            onSubmitEditing={() => recordSearch(value)}
+            placeholder={placeholder}
+            placeholderTextColor={theme.colors.textMuted}
+            returnKeyType="search"
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="never"
+          />
+          {value.length > 0 && onClear && (
+            <Pressable
+              onPress={onClear}
+              hitSlop={8}
+              style={styles.clearButton}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search text"
+            >
+              <X size={16} color={theme.colors.textSecondary} strokeWidth={2} />
+            </Pressable>
+          )}
+        </View>
+
+        {onFilterPress && (
           <Pressable
-            onPress={onClear}
-            hitSlop={8}
-            style={styles.clearButton}
+            onPress={onFilterPress}
+            style={({ pressed }) => [
+              styles.filterButton,
+              hasActiveFilters && styles.filterButtonActive,
+              pressed && styles.filterButtonPressed,
+            ]}
             accessibilityRole="button"
-            accessibilityLabel="Clear search text"
+            accessibilityLabel="Open filters"
           >
-            <X size={16} color={theme.colors.textSecondary} strokeWidth={2} />
+            <SlidersHorizontal
+              size={18}
+              color={hasActiveFilters ? '#FBF7EF' : theme.colors.textPrimary}
+              strokeWidth={1.8}
+            />
+            {hasActiveFilters && <View style={styles.activeDot} />}
           </Pressable>
         )}
       </View>
 
-      {onFilterPress && (
-        <Pressable
-          onPress={onFilterPress}
-          style={({ pressed }) => [
-            styles.filterButton,
-            hasActiveFilters && styles.filterButtonActive,
-            pressed && styles.filterButtonPressed,
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Open filters"
+      {showRecentRow && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.recentRow}
         >
-          <SlidersHorizontal
-            size={18}
-            color={hasActiveFilters ? '#FBF7EF' : theme.colors.textPrimary}
-            strokeWidth={1.8}
-          />
-          {hasActiveFilters && <View style={styles.activeDot} />}
-        </Pressable>
+          {recentSearches.map((term) => (
+            <View key={term} style={styles.recentChip}>
+              <Pressable
+                onPress={() => {
+                  onChangeText(term);
+                  recordSearch(term);
+                }}
+                style={styles.recentChipMain}
+              >
+                <Clock size={11} color={theme.colors.textMuted} />
+                <AppText variant="caption" color="secondary" style={styles.recentChipText}>
+                  {term}
+                </AppText>
+              </Pressable>
+              <Pressable
+                onPress={() => removeRecent(term)}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel={`Remove ${term} from recent searches`}
+              >
+                <X size={11} color={theme.colors.textMuted} />
+              </Pressable>
+            </View>
+          ))}
+        </ScrollView>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    paddingBottom: 2,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.screenPadding,
     paddingTop: theme.spacing.xs,
-    paddingBottom: theme.spacing.sm,
+    paddingBottom: theme.spacing.xs,
     gap: 8,
+  },
+  recentRow: {
+    paddingHorizontal: theme.spacing.screenPadding,
+    paddingBottom: 6,
+    gap: 6,
+  },
+  recentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.full,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  recentChipMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  recentChipText: {
+    fontSize: 11,
   },
   inputContainer: {
     flex: 1,
