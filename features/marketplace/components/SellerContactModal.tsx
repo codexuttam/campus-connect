@@ -64,11 +64,14 @@ export const SellerContactModal: React.FC<SellerContactModalProps> = ({
 
   const handleNavigateToChats = () => {
     onClose();
-    // Navigate to chats screen passing typed params
+    // Navigate to chats screen passing typed params including compact listing preview context
     router.push({
       pathname: '/(tabs)/chats',
       params: {
         listingId: listing.id,
+        listingTitle: listing.title,
+        listingPrice: formattedPrice,
+        listingThumbnail: coverImage,
         sellerId: listing.seller.id,
         sellerName: listing.seller.fullName,
       },
