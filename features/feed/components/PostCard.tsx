@@ -147,7 +147,7 @@ export const PostCard: React.FC<PostCardProps> = ({
         <AppText
           variant="body"
           color="primary"
-          numberOfLines={isExpanded ? undefined : 2}
+          numberOfLines={isExpanded ? undefined : 3}
           style={styles.contentText}
         >
           {post.content}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Bell, Sparkles } from 'lucide-react-native';
+import { Search, Bell, ShoppingBag } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { IconButton } from '../../../components/ui/IconButton';
 import { theme } from '../../../theme';
@@ -10,6 +10,7 @@ export interface HomeHeaderProps {
   campusName?: string;
   onSearchPress: () => void;
   onNotificationsPress: () => void;
+  onMarketplacePress?: () => void;
   hasUnreadNotifications?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
   campusName = 'Oxford · The Yard',
   onSearchPress,
   onNotificationsPress,
+  onMarketplacePress,
   hasUnreadNotifications = true,
 }) => {
   const insets = useSafeAreaInsets();
@@ -44,8 +46,24 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
           </View>
         </View>
 
-        {/* Right: Search & Notifications */}
+        {/* Right: Marketplace, Search & Notifications */}
         <View style={styles.actionsRow}>
+          {onMarketplacePress && (
+            <IconButton
+              icon={
+                <ShoppingBag
+                  size={theme.icons.sizes.header}
+                  color={theme.colors.maroon}
+                  strokeWidth={theme.icons.strokeWidth.default}
+                />
+              }
+              variant="surface"
+              size="sm"
+              onPress={onMarketplacePress}
+              accessibilityLabel="Open campus marketplace"
+            />
+          )}
+
           <IconButton
             icon={
               <Search

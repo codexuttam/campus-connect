@@ -4,13 +4,13 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
-  ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sparkles, Plus, AlertCircle } from 'lucide-react-native';
+import { Sparkles, AlertCircle, PenSquare, ShoppingBag } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { AppText } from '../../components/ui/AppText';
-import { AppCard } from '../../components/ui/AppCard';
+import { AppAvatar } from '../../components/ui/AppAvatar';
 import { AppButton } from '../../components/ui/AppButton';
 import { LoadingIndicator } from '../../components/ui/LoadingIndicator';
 import {
@@ -87,6 +87,7 @@ export default function HomeScreen() {
         campusName={user?.collegeName ? `${user.collegeName} · The Yard` : 'Oxford · The Yard'}
         onSearchPress={() => router.push('/search')}
         onNotificationsPress={() => router.push('/notifications')}
+        onMarketplacePress={() => router.push('/marketplace')}
         hasUnreadNotifications
       />
 
@@ -120,6 +121,41 @@ export default function HomeScreen() {
               onAddStoryPress={() => router.push('/create-post')}
               currentUserName={user?.fullName || 'You'}
             />
+
+            {/* 2.5 Quick Inline Campus Composer Prompt (Substack / Threads style) */}
+            <View style={styles.composerCard}>
+              <Pressable
+                onPress={() => router.push('/(tabs)/create')}
+                style={styles.composerTopRow}
+              >
+                <AppAvatar name={user?.fullName || 'Julian Vance'} size="sm" />
+                <View style={styles.composerPromptBox}>
+                  <AppText variant="bodySmall" color="muted">
+                    Share a research note, question, or campus update...
+                  </AppText>
+                </View>
+              </Pressable>
+              <View style={styles.composerActionsRow}>
+                <Pressable
+                  onPress={() => router.push('/(tabs)/create')}
+                  style={styles.composerChip}
+                >
+                  <PenSquare size={13} color={theme.colors.maroon} />
+                  <AppText variant="captionMedium" color="primary">
+                    Post Note
+                  </AppText>
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push('/marketplace/create')}
+                  style={styles.composerChip}
+                >
+                  <ShoppingBag size={13} color={theme.colors.olive} />
+                  <AppText variant="captionMedium" color="primary">
+                    Sell or Swap Item
+                  </AppText>
+                </Pressable>
+              </View>
+            </View>
 
             {/* 3. Trending on Campus Discussions */}
             <TrendingSection
@@ -212,6 +248,49 @@ const styles = StyleSheet.create({
   },
   headerSections: {
     marginBottom: theme.spacing.sm,
+  },
+  composerCard: {
+    marginHorizontal: theme.spacing.screenPadding,
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 12,
+    gap: 10,
+  },
+  composerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  composerPromptBox: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
+  },
+  composerActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 2,
+  },
+  composerChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
   },
   postItemWrapper: {
     paddingHorizontal: theme.spacing.screenPadding,

@@ -28,16 +28,20 @@ export const PostActions: React.FC<PostActionsProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.leftGroup}>
-        {/* Like Button */}
+        {/* Like Pill Button */}
         <Pressable
           onPress={onLike}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-          hitSlop={8}
+          style={({ pressed }) => [
+            styles.actionPill,
+            isLiked && styles.actionPillActive,
+            pressed && styles.pressed,
+          ]}
+          hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel={isLiked ? 'Unlike post' : 'Like post'}
         >
           <Heart
-            size={18}
+            size={16}
             color={isLiked ? theme.colors.maroon : theme.colors.textSecondary}
             fill={isLiked ? theme.colors.maroon : 'transparent'}
             strokeWidth={theme.icons.strokeWidth.default}
@@ -51,16 +55,16 @@ export const PostActions: React.FC<PostActionsProps> = ({
           </AppText>
         </Pressable>
 
-        {/* Comment Button */}
+        {/* Comment Pill Button */}
         <Pressable
           onPress={onComment}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-          hitSlop={8}
+          style={({ pressed }) => [styles.actionPill, pressed && styles.pressed]}
+          hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel="Comments"
         >
           <MessageCircle
-            size={18}
+            size={16}
             color={theme.colors.textSecondary}
             strokeWidth={theme.icons.strokeWidth.default}
           />
@@ -74,13 +78,17 @@ export const PostActions: React.FC<PostActionsProps> = ({
         {/* Bookmark / Save Button */}
         <Pressable
           onPress={onSave}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-          hitSlop={8}
+          style={({ pressed }) => [
+            styles.iconCircle,
+            isSaved && styles.actionPillActive,
+            pressed && styles.pressed,
+          ]}
+          hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel={isSaved ? 'Remove from saved' : 'Save post'}
         >
           <Bookmark
-            size={18}
+            size={16}
             color={isSaved ? theme.colors.maroon : theme.colors.textSecondary}
             fill={isSaved ? theme.colors.maroon : 'transparent'}
             strokeWidth={theme.icons.strokeWidth.default}
@@ -90,13 +98,13 @@ export const PostActions: React.FC<PostActionsProps> = ({
         {/* Share Button */}
         <Pressable
           onPress={onShare}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-          hitSlop={8}
+          style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}
+          hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel="Share post"
         >
           <Share2
-            size={18}
+            size={16}
             color={theme.colors.textSecondary}
             strokeWidth={theme.icons.strokeWidth.default}
           />
@@ -119,24 +127,44 @@ const styles = StyleSheet.create({
   leftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.lg,
+    gap: 8,
   },
   rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
+    gap: 6,
   },
-  actionButton: {
+  actionPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 4,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
+  },
+  actionPillActive: {
+    backgroundColor: theme.colors.maroonLight,
+    borderColor: theme.colors.maroon,
+  },
+  iconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
   },
   pressed: {
     opacity: 0.7,
   },
   actionCount: {
     fontFamily: theme.fontFamilies.sans.medium,
+    fontSize: 12,
   },
 });
 
