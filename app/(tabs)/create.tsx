@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ShoppingBag, ChevronRight } from 'lucide-react-native';
+import { ShoppingBag, PenSquare, ChevronRight } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { AppHeader } from '../../components/ui/AppHeader';
 import { AppText } from '../../components/ui/AppText';
@@ -33,6 +33,27 @@ export default function CreateScreen() {
       />
 
       <View style={styles.content}>
+        {/* Dual-Mode Segmented Switcher: Campus Discussion vs Marketplace Listing */}
+        <View style={styles.modeSwitcher}>
+          <View style={[styles.modeTab, styles.modeTabActive]}>
+            <PenSquare size={14} color={theme.colors.maroon} />
+            <AppText variant="captionMedium" color="primary" style={styles.modeTabTextActive}>
+              Campus Discussion
+            </AppText>
+          </View>
+          <Pressable
+            onPress={() => router.push('/marketplace/create')}
+            style={styles.modeTab}
+            accessibilityRole="button"
+            accessibilityLabel="Switch to sell or swap item on marketplace"
+          >
+            <ShoppingBag size={14} color={theme.colors.textSecondary} />
+            <AppText variant="captionMedium" color="secondary">
+              List Item for Sale / Swap
+            </AppText>
+          </Pressable>
+        </View>
+
         <View style={styles.kickerSection}>
           <AppText variant="captionMedium" color="secondary" style={styles.kicker}>
             CAMPUS DISCOURSE
@@ -84,6 +105,32 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: theme.spacing.screenPadding,
     paddingBottom: theme.spacing.massive,
+  },
+  modeSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 3,
+    marginBottom: theme.spacing.md,
+  },
+  modeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: theme.radius.sm,
+  },
+  modeTabActive: {
+    backgroundColor: theme.colors.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
+  },
+  modeTabTextActive: {
+    fontWeight: '700',
   },
   kickerSection: {
     marginBottom: theme.spacing.md,

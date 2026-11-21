@@ -72,7 +72,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.content}>
-        {/* Profile Identity Card */}
+        {/* Profile Identity Card (Read.cv Academic Dossier style) */}
         <AppCard variant="default" padding="lg" style={styles.identityCard}>
           <View style={styles.avatarRow}>
             <AppAvatar name={fullName} size="lg" borderColor={theme.colors.maroon} />
@@ -91,6 +91,22 @@ export default function ProfileScreen() {
                 ) : null}
               </View>
             </View>
+          </View>
+
+          <Divider spacing="sm" />
+
+          <AppText variant="bodySmall" color="secondary" style={styles.bioText}>
+            Researching formal verification, distributed systems, and philosophy of mind. Open to study groups, lab collaborations, and textbook swaps.
+          </AppText>
+
+          <View style={styles.interestChipsRow}>
+            {['Distributed Systems', 'Formal Logic', 'AI Safety', 'Rowing Club'].map((tag) => (
+              <View key={tag} style={styles.interestChip}>
+                <AppText variant="caption" color="secondary" style={styles.interestChipText}>
+                  {tag}
+                </AppText>
+              </View>
+            ))}
           </View>
         </AppCard>
 
@@ -285,6 +301,27 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: theme.spacing.xs,
     marginTop: theme.spacing.sm,
+  },
+  bioText: {
+    lineHeight: 19,
+    marginBottom: 10,
+  },
+  interestChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  interestChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
+  },
+  interestChipText: {
+    fontSize: 11,
+    fontWeight: '500',
   },
   systemCard: {
     marginBottom: theme.spacing.lg,
