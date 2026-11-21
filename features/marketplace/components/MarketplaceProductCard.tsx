@@ -8,11 +8,11 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { Bookmark, Sparkles } from 'lucide-react-native';
+import { Bookmark, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
 import { ProductConditionBadge } from './ProductConditionBadge';
 import { MarketplaceListing } from '../types';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, formatListingDate } from '../utils/formatters';
 import { theme } from '../../../theme';
 
 export interface MarketplaceProductCardProps {
@@ -97,11 +97,24 @@ export const MarketplaceProductCard: React.FC<MarketplaceProductCardProps> = ({
               </View>
             </View>
           )}
+
+          {/* Subtle Bottom-Left Type / Photo Count Pill (Depop / Karrot style) */}
+          {!isSold && !isReserved && (listing.listingType !== 'sell' || listing.images.length > 1) && (
+            <View style={styles.cornerPill}>
+              <AppText variant="caption" style={styles.cornerPillText}>
+                {listing.listingType === 'free'
+                  ? 'FREE'
+                  : listing.listingType === 'exchange'
+                  ? 'SWAP'
+                  : `${listing.images.length} photos`}
+              </AppText>
+            </View>
+          )}
         </View>
 
         {/* Card Body */}
         <View style={styles.details}>
-          {/* Price & Listing Type */}
+          {/* Price & Timestamp Row */}
           <View style={styles.priceRow}>
             <AppText
               variant="bodyMedium"
@@ -113,6 +126,9 @@ export const MarketplaceProductCard: React.FC<MarketplaceProductCardProps> = ({
               numberOfLines={1}
             >
               {formattedPrice}
+            </AppText>
+            <AppText variant="caption" color="muted" style={styles.timeText}>
+              {formatListingDate(listing.createdAt)}
             </AppText>
           </View>
 
@@ -126,13 +142,16 @@ export const MarketplaceProductCard: React.FC<MarketplaceProductCardProps> = ({
             {listing.title}
           </AppText>
 
-          {/* Condition & College/Time Footer */}
+          {/* Condition & Verified College Footer */}
           <View style={styles.footerRow}>
             <ProductConditionBadge condition={listing.condition} size="sm" />
             {listing.seller.isCollegeVerified && (
-              <AppText variant="caption" color="secondary" style={styles.verifiedDot}>
-                Verified
-              </AppText>
+              <View style={styles.verifiedBadge}>
+                <CheckCircle2 size={11} color={theme.colors.olive} strokeWidth={2.3} />
+                <AppText variant="caption" color="secondary" style={styles.verifiedDot}>
+                  Verified
+                </AppText>
+              </View>
             )}
           </View>
         </View>
@@ -239,6 +258,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.6,
   },
+  cornerPill: {
+    position: 'absolute',
+    bottom: 7,
+    left: 7,
+    backgroundColor: 'rgba(48, 43, 40, 0.72)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: theme.radius.xs,
+  },
+  cornerPillText: {
+    color: '#FBF7EF',
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
   saveButton: {
     position: 'absolute',
     top: 8,
@@ -264,12 +298,20 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   priceRow: {
-    marginBottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+    marginBottom: 3,
   },
   priceText: {
     color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 15,
+    flexShrink: 1,
+  },
+  timeText: {
+    fontSize: 10,
   },
   freePriceText: {
     color: theme.colors.olive,
@@ -291,6 +333,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 2,
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   verifiedDot: {
     fontSize: 10,

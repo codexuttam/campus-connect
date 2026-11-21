@@ -200,58 +200,86 @@ export const MarketplaceHomeScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Active Filter Chips & Live Count Summary Bar */}
+      {/* Active Filter Chips, Quick Sort & Live Count Summary Bar */}
       <View style={styles.metaBar}>
         <View style={styles.verifiedHint}>
           <ShieldCheck size={13} color={theme.colors.olive} />
           <AppText variant="caption" color="secondary">
-            {displayedListings.length} {displayedListings.length === 1 ? 'listing' : 'listings'} on campus
+            {displayedListings.length} {displayedListings.length === 1 ? 'item' : 'items'}
           </AppText>
         </View>
 
-        {hasActiveAdvancedFilters && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.activeFilterPills}
-          >
-            {filters.condition && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.activeFilterPills}
+        >
+          {(
+            [
+              { id: 'newest', label: 'Newest' },
+              { id: 'price_low', label: 'Price ↑' },
+              { id: 'price_high', label: 'Price ↓' },
+            ] as const
+          ).map((sortOpt) => {
+            const isSelected = (filters.sortBy || 'newest') === sortOpt.id;
+            return (
               <Pressable
-                onPress={() => setFilters({ ...filters, condition: undefined })}
-                style={styles.activeFilterTag}
+                key={sortOpt.id}
+                onPress={() => setFilters({ ...filters, sortBy: sortOpt.id })}
+                style={[
+                  styles.quickSortChip,
+                  isSelected && styles.quickSortChipActive,
+                ]}
               >
-                <AppText variant="caption" style={styles.activeFilterTagText}>
-                  {getConditionLabel(filters.condition)}
+                <AppText
+                  variant="caption"
+                  style={[
+                    styles.quickSortText,
+                    isSelected && styles.quickSortTextActive,
+                  ]}
+                >
+                  {sortOpt.label}
                 </AppText>
-                <X size={11} color={theme.colors.maroon} />
               </Pressable>
-            )}
-            {filters.listingType && (
-              <Pressable
-                onPress={() => setFilters({ ...filters, listingType: undefined })}
-                style={styles.activeFilterTag}
-              >
-                <AppText variant="caption" style={styles.activeFilterTagText}>
-                  {filters.listingType.toUpperCase()}
-                </AppText>
-                <X size={11} color={theme.colors.maroon} />
-              </Pressable>
-            )}
-            {(filters.minPrice || filters.maxPrice) && (
-              <Pressable
-                onPress={() =>
-                  setFilters({ ...filters, minPrice: undefined, maxPrice: undefined })
-                }
-                style={styles.activeFilterTag}
-              >
-                <AppText variant="caption" style={styles.activeFilterTagText}>
-                  {MARKETPLACE_CURRENCY}{filters.minPrice || 0}–{filters.maxPrice ? `${MARKETPLACE_CURRENCY}${filters.maxPrice}` : 'Any'}
-                </AppText>
-                <X size={11} color={theme.colors.maroon} />
-              </Pressable>
-            )}
-          </ScrollView>
-        )}
+            );
+          })}
+
+          {filters.condition && (
+            <Pressable
+              onPress={() => setFilters({ ...filters, condition: undefined })}
+              style={styles.activeFilterTag}
+            >
+              <AppText variant="caption" style={styles.activeFilterTagText}>
+                {getConditionLabel(filters.condition)}
+              </AppText>
+              <X size={11} color={theme.colors.maroon} />
+            </Pressable>
+          )}
+          {filters.listingType && (
+            <Pressable
+              onPress={() => setFilters({ ...filters, listingType: undefined })}
+              style={styles.activeFilterTag}
+            >
+              <AppText variant="caption" style={styles.activeFilterTagText}>
+                {filters.listingType.toUpperCase()}
+              </AppText>
+              <X size={11} color={theme.colors.maroon} />
+            </Pressable>
+          )}
+          {(filters.minPrice || filters.maxPrice) && (
+            <Pressable
+              onPress={() =>
+                setFilters({ ...filters, minPrice: undefined, maxPrice: undefined })
+              }
+              style={styles.activeFilterTag}
+            >
+              <AppText variant="caption" style={styles.activeFilterTagText}>
+                {MARKETPLACE_CURRENCY}{filters.minPrice || 0}–{filters.maxPrice ? `${MARKETPLACE_CURRENCY}${filters.maxPrice}` : 'Any'}
+              </AppText>
+              <X size={11} color={theme.colors.maroon} />
+            </Pressable>
+          )}
+        </ScrollView>
       </View>
 
       {/* Two-Column Responsive Virtualized Grid */}
@@ -391,6 +419,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginLeft: 8,
+  },
+  quickSortChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border,
+  },
+  quickSortChipActive: {
+    backgroundColor: theme.colors.textPrimary,
+    borderColor: theme.colors.textPrimary,
+  },
+  quickSortText: {
+    fontSize: 10.5,
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
+  },
+  quickSortTextActive: {
+    color: '#FBF7EF',
+    fontWeight: '600',
   },
   activeFilterTag: {
     flexDirection: 'row',
