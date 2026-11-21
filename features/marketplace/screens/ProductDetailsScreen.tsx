@@ -43,7 +43,12 @@ import {
   useReportListing,
   useBlockSeller,
 } from '../hooks/useMarketplace';
-import { formatPrice, formatListingDate, getCategoryLabel } from '../utils/formatters';
+import {
+  formatPrice,
+  formatListingDate,
+  getCategoryLabel,
+  getConditionLabel,
+} from '../utils/formatters';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { theme } from '../../../theme';
 import { showAlert } from '../../../services/dialog';
@@ -295,6 +300,46 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
 
           <View style={styles.divider} />
 
+          {/* Structured Item Specifications Grid (Grailed / Karrot style) */}
+          <View style={styles.specsGridCard}>
+            <View style={styles.specCell}>
+              <AppText variant="caption" color="secondary" style={styles.specLabel}>
+                CONDITION
+              </AppText>
+              <AppText variant="bodySmallMedium" color="primary">
+                {getConditionLabel(listing.condition)}
+              </AppText>
+            </View>
+            <View style={styles.specCell}>
+              <AppText variant="caption" color="secondary" style={styles.specLabel}>
+                CATEGORY
+              </AppText>
+              <AppText variant="bodySmallMedium" color="primary">
+                {getCategoryLabel(listing.category)}
+              </AppText>
+            </View>
+            <View style={styles.specCell}>
+              <AppText variant="caption" color="secondary" style={styles.specLabel}>
+                LISTING TYPE
+              </AppText>
+              <AppText variant="bodySmallMedium" color="primary">
+                {listing.listingType === 'free'
+                  ? 'Free Giveaway'
+                  : listing.listingType === 'exchange'
+                  ? 'Peer Swap'
+                  : 'For Sale'}
+              </AppText>
+            </View>
+            <View style={styles.specCell}>
+              <AppText variant="caption" color="secondary" style={styles.specLabel}>
+                CAMPUS PICKUP
+              </AppText>
+              <AppText variant="bodySmallMedium" color="primary" numberOfLines={1}>
+                {listing.collegeName || listing.seller.collegeName}
+              </AppText>
+            </View>
+          </View>
+
           {/* Short Description */}
           <View style={styles.sectionBlock}>
             <AppText variant="captionMedium" color="secondary" style={styles.sectionHeader}>
@@ -304,6 +349,48 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
               {listing.description}
             </AppText>
           </View>
+
+          {/* One-Tap Quick Campus Inquiry Bar (Karrot style) */}
+          {!isOwner && !isSold && (
+            <View style={styles.quickInquiryBox}>
+              <AppText variant="captionMedium" color="secondary" style={styles.sectionHeader}>
+                QUICK CAMPUS INQUIRY
+              </AppText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.quickInquiryRow}
+              >
+                {[
+                  'Is this still available?',
+                  'Meet at Main Library?',
+                  'Can I inspect on campus today?',
+                ].map((prompt) => (
+                  <Pressable
+                    key={prompt}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(tabs)/chats',
+                        params: {
+                          listingId: listing.id,
+                          listingTitle: listing.title,
+                          listingPrice: formattedPrice,
+                          listingThumbnail: listing.images[0]?.imageUrl || '',
+                          sellerId: listing.seller.id,
+                          sellerName: listing.seller.fullName,
+                        },
+                      })
+                    }
+                    style={styles.quickInquiryChip}
+                  >
+                    <AppText variant="caption" color="primary" style={styles.quickInquiryText}>
+                      “{prompt}”
+                    </AppText>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           <View style={styles.divider} />
 
@@ -557,6 +644,44 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: theme.colors.borderSubtle,
     marginVertical: theme.spacing.md,
+  },
+  specsGridCard: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 12,
+    marginBottom: theme.spacing.md,
+    rowGap: 10,
+  },
+  specCell: {
+    width: '50%',
+    paddingRight: 8,
+  },
+  specLabel: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  quickInquiryBox: {
+    marginTop: theme.spacing.md,
+  },
+  quickInquiryRow: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  quickInquiryChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  quickInquiryText: {
+    fontWeight: '500',
   },
   sectionBlock: {
     marginVertical: 4,
