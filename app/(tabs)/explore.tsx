@@ -4,11 +4,14 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Pressable,
   useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ShoppingBag, FolderGit2, Users, Compass as CompassIcon } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { LoadingIndicator } from '../../components/ui/LoadingIndicator';
+import { AppText } from '../../components/ui/AppText';
 import { AppButton } from '../../components/ui/AppButton';
 import {
   ExploreHeader,
@@ -159,6 +162,79 @@ export default function ExploreScreen() {
           />
         }
       >
+        {/* Quick Campus Index Bento Row (Read.cv / Are.na style) */}
+        {selectedCategory === 'all' && (
+          <View style={styles.bentoGrid}>
+            <Pressable
+              onPress={() => router.push('/marketplace')}
+              style={styles.bentoCard}
+            >
+              <View style={[styles.bentoIconWrap, { backgroundColor: theme.colors.maroonLight }]}>
+                <ShoppingBag size={15} color={theme.colors.maroon} />
+              </View>
+              <View>
+                <AppText variant="bodySmallMedium" color="primary">
+                  Marketplace
+                </AppText>
+                <AppText variant="caption" color="secondary">
+                  {marketplaceListings.length} campus listings
+                </AppText>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setSelectedCategory('projects')}
+              style={styles.bentoCard}
+            >
+              <View style={[styles.bentoIconWrap, { backgroundColor: theme.colors.oliveLight }]}>
+                <FolderGit2 size={15} color={theme.colors.olive} />
+              </View>
+              <View>
+                <AppText variant="bodySmallMedium" color="primary">
+                  Projects
+                </AppText>
+                <AppText variant="caption" color="secondary">
+                  {projects.length} open labs
+                </AppText>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setSelectedCategory('people')}
+              style={styles.bentoCard}
+            >
+              <View style={[styles.bentoIconWrap, { backgroundColor: theme.colors.surface }]}>
+                <Users size={15} color={theme.colors.textPrimary} />
+              </View>
+              <View>
+                <AppText variant="bodySmallMedium" color="primary">
+                  Scholars
+                </AppText>
+                <AppText variant="caption" color="secondary">
+                  {students.length} verified peers
+                </AppText>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setSelectedCategory('communities')}
+              style={styles.bentoCard}
+            >
+              <View style={[styles.bentoIconWrap, { backgroundColor: theme.colors.surface }]}>
+                <CompassIcon size={15} color={theme.colors.maroon} />
+              </View>
+              <View>
+                <AppText variant="bodySmallMedium" color="primary">
+                  Societies
+                </AppText>
+                <AppText variant="caption" color="secondary">
+                  {communities.length} active clubs
+                </AppText>
+              </View>
+            </Pressable>
+          </View>
+        )}
+
         {/* Section A: Trending Projects */}
         {showProjects && (
           <DiscoverySection
@@ -460,6 +536,34 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: theme.spacing.massive,
+  },
+  bentoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.screenPadding,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.sm,
+    rowGap: 10,
+  },
+  bentoCard: {
+    width: '48.5%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  bentoIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: theme.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   horizontalScroll: {
     paddingHorizontal: theme.spacing.screenPadding,
