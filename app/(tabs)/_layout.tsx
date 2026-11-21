@@ -27,7 +27,7 @@ export default function TabLayout() {
   }
 
   // Ensure adequate height considering safe area insets
-  const tabHeight = 56 + Math.max(insets.bottom, 12);
+  const tabHeight = 60 + Math.max(insets.bottom, 10);
 
   return (
     <Tabs
@@ -40,9 +40,10 @@ export default function TabLayout() {
           {
             height: tabHeight,
             paddingBottom: Math.max(insets.bottom, 8),
-            paddingTop: 8,
+            paddingTop: 6,
           },
         ],
+        tabBarItemStyle: styles.tabItem,
         tabBarLabelStyle: styles.tabLabel,
       }}
     >
@@ -119,9 +120,13 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
+  tabItem: {
+    paddingVertical: 2,
+  },
   tabLabel: {
     fontFamily: theme.fontFamilies.sans.medium,
-    fontSize: 11,
-    marginTop: -2,
+    fontSize: 10.5,
+    letterSpacing: 0.15,
+    marginTop: 2,
   },
 });
