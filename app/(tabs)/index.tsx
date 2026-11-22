@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,7 +6,8 @@ import {
   RefreshControl,
   Pressable,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Sparkles, AlertCircle, PenSquare, ShoppingBag } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { AppText } from '../../components/ui/AppText';
@@ -45,6 +46,24 @@ export default function HomeScreen() {
   const [feedFilter, setFeedFilter] = useState<'for-you' | 'following'>('for-you');
   const [selectedCategory, setSelectedCategory] = useState<PostCategory>('all');
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem('campusconnect.notifications.v1')
+        .then((raw) => {
+          if (!raw) {
+            setHasUnreadNotifications(true);
+            return;
+          }
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setHasUnreadNotifications(parsed.some((n) => !n.isRead));
+          }
+        })
+        .catch(() => {});
+    }, [])
+  );
 
   // Queries
   const {
@@ -88,7 +107,7 @@ export default function HomeScreen() {
         onSearchPress={() => router.push('/search')}
         onNotificationsPress={() => router.push('/notifications')}
         onMarketplacePress={() => router.push('/marketplace')}
-        hasUnreadNotifications
+        hasUnreadNotifications={hasUnreadNotifications}
       />
 
       {/* Main Feed FlatList */}
