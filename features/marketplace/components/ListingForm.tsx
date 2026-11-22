@@ -66,6 +66,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     initialValues?.price !== undefined ? String(initialValues.price) : ''
   );
   const [exchangeFor, setExchangeFor] = useState(initialValues?.exchangeFor || '');
+  const [meetupSpot, setMeetupSpot] = useState(
+    initialValues?.meetupSpot || 'Main Library Steps'
+  );
   const [description, setDescription] = useState(initialValues?.description || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -78,6 +81,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     price: listingType === 'free' ? 0 : Number(price) || 0,
     currency: MARKETPLACE_CURRENCY,
     exchangeFor: listingType === 'exchange' ? exchangeFor : undefined,
+    meetupSpot,
     images,
   };
 
@@ -503,6 +507,43 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 <AppText variant="caption" color="muted">
                   {description.length}/1000
                 </AppText>
+              </View>
+            </View>
+
+            {/* Safe Campus Meetup Spot Chips */}
+            <View style={styles.fieldGroup}>
+              <AppText variant="captionMedium" color="secondary" style={styles.fieldLabel}>
+                SAFE CAMPUS PICKUP ZONE
+              </AppText>
+              <View style={styles.chipRow}>
+                {[
+                  'Main Library Steps',
+                  'Student Union Cafe',
+                  'Science Quad',
+                  "Porter's Lodge",
+                ].map((spot) => {
+                  const isSelected = meetupSpot === spot;
+                  return (
+                    <Pressable
+                      key={spot}
+                      onPress={() => setMeetupSpot(spot)}
+                      style={[
+                        styles.selectChip,
+                        isSelected ? styles.selectChipActive : styles.selectChipInactive,
+                      ]}
+                    >
+                      <AppText
+                        variant="buttonSmall"
+                        style={[
+                          styles.chipLabel,
+                          isSelected ? styles.chipLabelActive : styles.chipLabelInactive,
+                        ]}
+                      >
+                        {spot}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
 

@@ -335,7 +335,7 @@ export const ProductDetailsScreen: React.FC<ProductDetailsScreenProps> = ({ id }
                 CAMPUS PICKUP
               </AppText>
               <AppText variant="bodySmallMedium" color="primary" numberOfLines={1}>
-                {listing.collegeName || listing.seller.collegeName}
+                {listing.meetupSpot || listing.collegeName || listing.seller.collegeName}
               </AppText>
             </View>
           </View>

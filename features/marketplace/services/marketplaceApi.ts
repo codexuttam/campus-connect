@@ -211,6 +211,7 @@ class MarketplaceApiService {
       price: input.listingType === 'free' ? 0 : Number(input.price) || 0,
       currency: input.currency || MARKETPLACE_CURRENCY,
       exchangeFor: input.listingType === 'exchange' ? input.exchangeFor?.trim() : undefined,
+      meetupSpot: input.meetupSpot || 'Main Library Steps',
       status: input.status || 'active',
       images,
       seller: {
@@ -287,6 +288,7 @@ class MarketplaceApiService {
           : input.listingType
           ? undefined
           : current.exchangeFor,
+      meetupSpot: input.meetupSpot !== undefined ? input.meetupSpot : current.meetupSpot,
       status: input.status || current.status,
       images: updatedImages,
       updatedAt: new Date().toISOString(),

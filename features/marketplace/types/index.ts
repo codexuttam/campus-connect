@@ -67,6 +67,7 @@ export interface MarketplaceListing {
   price: number;
   currency: string;
   exchangeFor?: string; // Required when listingType === 'exchange'
+  meetupSpot?: string; // Safe public campus pickup zone (never precise dorm room)
   status: MarketplaceStatus;
   images: MarketplaceImage[];
   seller: MarketplaceSeller;
@@ -114,6 +115,7 @@ export interface CreateListingInput {
   price: number;
   currency?: string;
   exchangeFor?: string;
+  meetupSpot?: string;
   images: string[]; // local URIs or URLs
   status?: MarketplaceStatus;
 }
