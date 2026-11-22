@@ -31,6 +31,11 @@ import {
   useBlockedSellers,
   useUnblockSeller,
 } from '../../features/marketplace/hooks/useMarketplace';
+import { useCampusFeed } from '../../features/feed/hooks/useFeed';
+import {
+  usePopularCommunities,
+  useTrendingProjects,
+} from '../../features/explore/hooks/useExplore';
 import { theme } from '../../theme';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -44,7 +49,15 @@ export default function ProfileScreen() {
   const { data: myActiveListings = [] } = useMyListings('active');
   const { data: savedListings = [] } = useSavedListings();
   const { data: blockedSellers = [] } = useBlockedSellers();
+  const { data: feedData } = useCampusFeed({ filter: 'for-you', category: 'all' });
+  const { data: communities = [] } = usePopularCommunities();
+  const { data: projects = [] } = useTrendingProjects();
   const unblockMutation = useUnblockSeller();
+
+  const joinedClubsCount = communities.filter((c) => c.isJoined).length;
+  const savedPostsCount = (feedData?.posts || []).filter((p) => p.isSaved).length;
+  const bookmarkedProjectsCount = projects.filter((p) => p.isBookmarked).length;
+  const totalSavedBookmarks = savedPostsCount + bookmarkedProjectsCount;
 
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [bio, setBio] = useState(DEFAULT_BIO);
@@ -259,35 +272,69 @@ export default function ProfileScreen() {
           />
         </AppCard>
 
-        {/* Placeholder Information Blocks */}
+        {/* Live Campus Activity Stats */}
         <View style={styles.statsRow}>
-          <AppCard variant="default" padding="md" style={styles.statBox}>
-            <AppText variant="caption" color="secondary">
-              CLUBS
-            </AppText>
-            <AppText variant="h2" serif color="maroon">
-              4
-            </AppText>
-          </AppCard>
+          <Pressable
+            onPress={() => router.push('/(tabs)/explore')}
+            style={{ flex: 1 }}
+          >
+            <AppCard variant="default" padding="md" style={styles.statBox}>
+              <AppText variant="caption" color="secondary">
+                CLUBS
+              </AppText>
+              <AppText variant="h2" serif color="maroon">
+                {joinedClubsCount}
+              </AppText>
+            </AppCard>
+          </Pressable>
 
-          <AppCard variant="default" padding="md" style={styles.statBox}>
-            <AppText variant="caption" color="secondary">
-              CREDITS
-            </AppText>
-            <AppText variant="h2" serif color="olive">
-              18
-            </AppText>
-          </AppCard>
+          <Pressable
+            onPress={() => router.push('/saved-bookmarks')}
+            style={{ flex: 1 }}
+          >
+            <AppCard variant="default" padding="md" style={styles.statBox}>
+              <AppText variant="caption" color="secondary">
+                SAVED
+              </AppText>
+              <AppText variant="h2" serif color="olive">
+                {totalSavedBookmarks}
+              </AppText>
+            </AppCard>
+          </Pressable>
 
-          <AppCard variant="default" padding="md" style={styles.statBox}>
-            <AppText variant="caption" color="secondary">
-              ROLE
-            </AppText>
-            <AppText variant="h3" color="primary" style={styles.roleStat}>
-              Student
-            </AppText>
-          </AppCard>
+          <Pressable
+            onPress={() => router.push('/marketplace/my-listings')}
+            style={{ flex: 1 }}
+          >
+            <AppCard variant="default" padding="md" style={styles.statBox}>
+              <AppText variant="caption" color="secondary">
+                LISTINGS
+              </AppText>
+              <AppText variant="h2" serif color="primary">
+                {myActiveListings.length}
+              </AppText>
+            </AppCard>
+          </Pressable>
         </View>
+
+        {/* Saved Discussions & Projects Shortcut */}
+        <Pressable
+          onPress={() => router.push('/saved-bookmarks')}
+          style={styles.savedBookmarksCard}
+        >
+          <View style={styles.marketplaceActionLeft}>
+            <Bookmark size={16} color={theme.colors.maroon} />
+            <View>
+              <AppText variant="bodySmallMedium" color="primary">
+                Saved Discussions & Projects
+              </AppText>
+              <AppText variant="caption" color="secondary">
+                {savedPostsCount} posts · {bookmarkedProjectsCount} projects bookmarked
+              </AppText>
+            </View>
+          </View>
+          <ChevronRight size={16} color={theme.colors.textSecondary} />
+        </Pressable>
 
         {/* Authentication & Session Management Action */}
         <View style={styles.sessionCard}>
@@ -534,7 +581,19 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: theme.spacing.md,
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
+  },
+  savedBookmarksCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.card,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: theme.spacing.lg,
   },
   statBox: {
     flex: 1,
