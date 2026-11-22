@@ -23,6 +23,7 @@ import {
   FilterBottomSheet,
   ProjectDetailsModal,
   UserProfileModal,
+  CommunityDetailsModal,
 } from '../../features/explore/components';
 import { PostCard } from '../../features/feed/components/PostCard';
 import { MarketplaceProductCard } from '../../features/marketplace/components/MarketplaceProductCard';
@@ -51,6 +52,7 @@ import {
   DiscoveryFilters,
   Project,
   StudentProfile,
+  Community,
 } from '../../features/explore/types';
 import { theme } from '../../theme';
 
@@ -68,6 +70,7 @@ export default function ExploreScreen() {
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
+  const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
 
   // Queries
   const {
@@ -340,7 +343,7 @@ export default function ExploreScreen() {
                   <CommunityCard
                     key={community.id}
                     community={community}
-                    onPress={() => {}}
+                    onPress={() => setSelectedCommunity(community)}
                     onToggleJoin={() => communityMutation.mutate(community.id)}
                   />
                 ))}
@@ -356,7 +359,7 @@ export default function ExploreScreen() {
                   <CommunityCard
                     key={community.id}
                     community={community}
-                    onPress={() => {}}
+                    onPress={() => setSelectedCommunity(community)}
                     onToggleJoin={() => communityMutation.mutate(community.id)}
                     compact
                   />
@@ -519,6 +522,27 @@ export default function ExploreScreen() {
             setSelectedStudent({
               ...selectedStudent,
               isFollowing: !selectedStudent.isFollowing,
+            });
+          }
+        }}
+      />
+
+      {/* Community Details Modal */}
+      <CommunityDetailsModal
+        community={selectedCommunity}
+        visible={selectedCommunity !== null}
+        onClose={() => setSelectedCommunity(null)}
+        onToggleJoin={() => {
+          if (selectedCommunity) {
+            communityMutation.mutate(selectedCommunity.id);
+            const nextJoined = !selectedCommunity.isJoined;
+            setSelectedCommunity({
+              ...selectedCommunity,
+              isJoined: nextJoined,
+              memberCount: Math.max(
+                0,
+                selectedCommunity.memberCount + (nextJoined ? 1 : -1)
+              ),
             });
           }
         }}

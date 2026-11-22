@@ -10,3 +10,4 @@ export * from './EmptySearchState';
 export * from './SearchResultCard';
 export * from './ProjectDetailsModal';
 export * from './UserProfileModal';
+export * from './CommunityDetailsModal';

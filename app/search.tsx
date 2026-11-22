@@ -39,6 +39,7 @@ import {
   SearchResultCard,
   ProjectDetailsModal,
   UserProfileModal,
+  CommunityDetailsModal,
   FilterBottomSheet,
 } from '../features/explore/components';
 import {
@@ -49,6 +50,7 @@ import {
   useToggleConnection,
   useToggleFollow,
   useToggleBookmarkProject,
+  useToggleCommunityMembership,
 } from '../features/explore/hooks/useExplore';
 import {
   StudentProfile,
@@ -91,6 +93,8 @@ export default function GlobalSearchScreen() {
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
+  const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
+  const communityMutation = useToggleCommunityMembership();
 
   // Queries
   const {
@@ -336,7 +340,7 @@ export default function GlobalSearchScreen() {
                       key={comm.id}
                       type="community"
                       data={comm}
-                      onPress={() => {}}
+                      onPress={() => setSelectedCommunity(comm)}
                     />
                   ))}
                 </View>
@@ -451,6 +455,27 @@ export default function GlobalSearchScreen() {
             setSelectedStudent({
               ...selectedStudent,
               isFollowing: !selectedStudent.isFollowing,
+            });
+          }
+        }}
+      />
+
+      {/* Community Details Modal */}
+      <CommunityDetailsModal
+        community={selectedCommunity}
+        visible={selectedCommunity !== null}
+        onClose={() => setSelectedCommunity(null)}
+        onToggleJoin={() => {
+          if (selectedCommunity) {
+            communityMutation.mutate(selectedCommunity.id);
+            const nextJoined = !selectedCommunity.isJoined;
+            setSelectedCommunity({
+              ...selectedCommunity,
+              isJoined: nextJoined,
+              memberCount: Math.max(
+                0,
+                selectedCommunity.memberCount + (nextJoined ? 1 : -1)
+              ),
             });
           }
         }}
