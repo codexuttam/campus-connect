@@ -169,4 +169,22 @@ export function useBlockSeller() {
   });
 }
 
+export function useBlockedSellers() {
+  return useQuery({
+    queryKey: ['marketplace', 'blockedSellers'] as const,
+    queryFn: () => marketplaceApi.fetchBlockedSellerIds(),
+  });
+}
+
+export function useUnblockSeller() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sellerId: string) => marketplaceApi.unblockSeller(sellerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MARKETPLACE_QUERY_KEYS.all });
+    },
+  });
+}
+
 

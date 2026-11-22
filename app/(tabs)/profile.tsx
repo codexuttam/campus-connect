@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Pressable, Modal, TextInput, ScrollView, Switch } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import {
   Settings,
@@ -11,6 +12,8 @@ import {
   Tag,
   Plus,
   ChevronRight,
+  X,
+  ShieldCheck,
 } from 'lucide-react-native';
 import {
   AppText,
@@ -25,15 +28,53 @@ import { ScreenContainer } from '../../components/common/ScreenContainer';
 import {
   useMyListings,
   useSavedListings,
+  useBlockedSellers,
+  useUnblockSeller,
 } from '../../features/marketplace/hooks/useMarketplace';
 import { theme } from '../../theme';
 import { useAuth } from '../../hooks/useAuth';
+
+const PROFILE_PREFS_KEY = 'campusconnect.profilePrefs.v1';
+const DEFAULT_BIO =
+  'Researching formal verification, distributed systems, and philosophy of mind. Open to study groups, lab collaborations, and textbook swaps.';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { data: myActiveListings = [] } = useMyListings('active');
   const { data: savedListings = [] } = useSavedListings();
+  const { data: blockedSellers = [] } = useBlockedSellers();
+  const unblockMutation = useUnblockSeller();
+
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [bio, setBio] = useState(DEFAULT_BIO);
+  const [draftBio, setDraftBio] = useState(DEFAULT_BIO);
+  const [pushEnabled, setPushEnabled] = useState(true);
+
+  useEffect(() => {
+    AsyncStorage.getItem(PROFILE_PREFS_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.bio === 'string') {
+          setBio(parsed.bio);
+          setDraftBio(parsed.bio);
+        }
+        if (typeof parsed.pushEnabled === 'boolean') {
+          setPushEnabled(parsed.pushEnabled);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const savePrefs = (nextBio: string, nextPush: boolean) => {
+    setBio(nextBio);
+    setPushEnabled(nextPush);
+    AsyncStorage.setItem(
+      PROFILE_PREFS_KEY,
+      JSON.stringify({ bio: nextBio, pushEnabled: nextPush })
+    ).catch(() => {});
+  };
 
   const fullName = user?.fullName || 'Julian Vance';
   const course = user?.courseOrBranch || 'Computer Science & Philosophy';
@@ -66,6 +107,10 @@ export default function ProfileScreen() {
             }
             variant="surface"
             size="sm"
+            onPress={() => {
+              setDraftBio(bio);
+              setIsSettingsVisible(true);
+            }}
             accessibilityLabel="Settings"
           />
         </View>
@@ -96,7 +141,7 @@ export default function ProfileScreen() {
           <Divider spacing="sm" />
 
           <AppText variant="bodySmall" color="secondary" style={styles.bioText}>
-            Researching formal verification, distributed systems, and philosophy of mind. Open to study groups, lab collaborations, and textbook swaps.
+            {bio}
           </AppText>
 
           <View style={styles.interestChipsRow}>
@@ -262,6 +307,111 @@ export default function ProfileScreen() {
           />
         </View>
       </View>
+
+      {/* Settings & Campus Safety Modal */}
+      <Modal
+        visible={isSettingsVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsSettingsVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={styles.modalDismiss}
+            onPress={() => setIsSettingsVisible(false)}
+          />
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <AppText variant="h3" serif color="primary">
+                Profile & Safety Settings
+              </AppText>
+              <Pressable
+                onPress={() => setIsSettingsVisible(false)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Close settings"
+              >
+                <X size={18} color={theme.colors.textPrimary} />
+              </Pressable>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <AppText variant="captionMedium" color="secondary" style={styles.modalLabel}>
+                ACADEMIC BIO
+              </AppText>
+              <TextInput
+                style={styles.bioInput}
+                value={draftBio}
+                onChangeText={setDraftBio}
+                multiline
+                numberOfLines={3}
+                maxLength={220}
+                placeholder="Share your research interests or study goals..."
+                placeholderTextColor={theme.colors.textMuted}
+              />
+
+              <View style={styles.settingToggleRow}>
+                <View style={{ flex: 1, marginRight: 12 }}>
+                  <AppText variant="bodySmallMedium" color="primary">
+                    Campus Activity Alerts
+                  </AppText>
+                  <AppText variant="caption" color="secondary">
+                    Notify on marketplace messages and post replies
+                  </AppText>
+                </View>
+                <Switch
+                  value={pushEnabled}
+                  onValueChange={(val) => savePrefs(bio, val)}
+                  trackColor={{ false: theme.colors.border, true: theme.colors.maroon }}
+                  thumbColor="#FBF7EF"
+                />
+              </View>
+
+              <AppText variant="captionMedium" color="secondary" style={[styles.modalLabel, { marginTop: 16 }]}>
+                BLOCKED MARKETPLACE SELLERS ({blockedSellers.length})
+              </AppText>
+              {blockedSellers.length === 0 ? (
+                <View style={styles.emptyBlockedBox}>
+                  <ShieldCheck size={16} color={theme.colors.olive} />
+                  <AppText variant="caption" color="secondary">
+                    No sellers blocked. You can hide any seller from a listing page.
+                  </AppText>
+                </View>
+              ) : (
+                <View style={styles.blockedList}>
+                  {blockedSellers.map((sellerId) => (
+                    <View key={sellerId} style={styles.blockedRow}>
+                      <AppText variant="bodySmall" color="primary">
+                        Seller #{sellerId.slice(-8)}
+                      </AppText>
+                      <Pressable
+                        onPress={() => unblockMutation.mutate(sellerId)}
+                        style={styles.unblockBtn}
+                      >
+                        <AppText variant="captionMedium" style={styles.unblockText}>
+                          Unblock
+                        </AppText>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <AppButton
+                title="Save Profile Settings"
+                variant="primary"
+                fullWidth
+                onPress={() => {
+                  savePrefs(draftBio.trim() || DEFAULT_BIO, pushEnabled);
+                  setIsSettingsVisible(false);
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -397,5 +547,99 @@ const styles = StyleSheet.create({
   },
   sessionCard: {
     marginTop: theme.spacing.sm,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(48, 43, 40, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalDismiss: {
+    flex: 1,
+  },
+  modalSheet: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.radius.xl,
+    borderTopRightRadius: theme.radius.xl,
+    maxHeight: '80%',
+    paddingBottom: 28,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.screenPadding,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.border,
+  },
+  modalBody: {
+    paddingHorizontal: theme.spacing.screenPadding,
+    paddingTop: 14,
+  },
+  modalLabel: {
+    fontSize: 10.5,
+    letterSpacing: 0.7,
+    marginBottom: 6,
+  },
+  bioInput: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 10,
+    fontSize: 13.5,
+    fontFamily: theme.fontFamilies.sans.regular,
+    color: theme.colors.textPrimary,
+    minHeight: 74,
+    textAlignVertical: 'top',
+    marginBottom: 14,
+  },
+  settingToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 12,
+  },
+  emptyBlockedBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 10,
+  },
+  blockedList: {
+    gap: 8,
+  },
+  blockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  unblockBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.maroonLight,
+  },
+  unblockText: {
+    color: theme.colors.maroon,
+    fontSize: 11,
+  },
+  modalFooter: {
+    paddingHorizontal: theme.spacing.screenPadding,
+    paddingTop: 14,
   },
 });
