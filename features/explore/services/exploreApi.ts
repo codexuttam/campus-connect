@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   StudentProfile,
   Project,
@@ -14,17 +15,67 @@ import {
 import { INITIAL_POSTS } from '../../feed/services/feedMockData';
 import { Post } from '../../feed/types';
 
+const EXPLORE_STORAGE_KEY = 'campusconnect.explore.v1';
+const EXPLORE_STORAGE_VERSION = 1;
+
+interface PersistedExploreState {
+  version: number;
+  students: StudentProfile[];
+  projects: Project[];
+  communities: Community[];
+  searchHistory: string[];
+}
+
 class ExploreApiService {
   private students: StudentProfile[] = [...MOCK_STUDENTS];
   private projects: Project[] = [...MOCK_PROJECTS];
   private communities: Community[] = [...MOCK_COMMUNITIES];
   private posts: Post[] = [...INITIAL_POSTS];
   private searchHistory: string[] = [...INITIAL_SEARCH_HISTORY];
+  private hydration: Promise<void> | null = null;
+
+  private async ready(latencyMs = 120): Promise<void> {
+    if (!this.hydration) {
+      this.hydration = this.hydrate();
+    }
+    await this.hydration;
+    await new Promise((r) => setTimeout(r, latencyMs));
+  }
+
+  private async hydrate(): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem(EXPLORE_STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw) as PersistedExploreState;
+      if (state.version !== EXPLORE_STORAGE_VERSION) return;
+      this.students = state.students;
+      this.projects = state.projects;
+      this.communities = state.communities;
+      this.searchHistory = state.searchHistory;
+    } catch {
+      // Fall back to seed data
+    }
+  }
+
+  private async persist(): Promise<void> {
+    try {
+      const state: PersistedExploreState = {
+        version: EXPLORE_STORAGE_VERSION,
+        students: this.students,
+        projects: this.projects,
+        communities: this.communities,
+        searchHistory: this.searchHistory,
+      };
+      await AsyncStorage.setItem(EXPLORE_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Best-effort persistence
+    }
+  }
 
   // ================= DISCOVERY SECTIONS =================
 
   async fetchTrendingProjects(filters?: DiscoveryFilters): Promise<Project[]> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(120);
     let res = [...this.projects];
 
     if (filters?.onlySeekingTeammates) {
@@ -42,7 +93,7 @@ class ExploreApiService {
   }
 
   async fetchRecommendedStudents(filters?: DiscoveryFilters): Promise<StudentProfile[]> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(120);
     let res = [...this.students];
 
     if (filters?.branch) {
@@ -63,7 +114,7 @@ class ExploreApiService {
   }
 
   async fetchPopularCommunities(filters?: DiscoveryFilters): Promise<Community[]> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(120);
     let res = [...this.communities];
 
     if (filters?.onlyOfficialSocieties) {
@@ -74,7 +125,7 @@ class ExploreApiService {
   }
 
   async fetchCampusHighlights(): Promise<Post[]> {
-    await new Promise((r) => setTimeout(r, 100));
+    await this.ready(80);
     return this.posts.slice(0, 3);
   }
 
@@ -84,7 +135,7 @@ class ExploreApiService {
     query: string,
     filters?: DiscoveryFilters
   ): Promise<SearchResults> {
-    await new Promise((r) => setTimeout(r, 200));
+    await this.ready(150);
 
     const clean = query.trim().toLowerCase();
 
@@ -144,7 +195,7 @@ class ExploreApiService {
   // ================= ACTIONS =================
 
   async toggleConnection(studentId: string): Promise<'none' | 'pending' | 'connected'> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(100);
     const idx = this.students.findIndex((s) => s.id === studentId);
     if (idx !== -1) {
       const current = this.students[idx].connectionStatus;
@@ -157,35 +208,38 @@ class ExploreApiService {
         nextStatus = 'none';
       }
       this.students[idx] = { ...this.students[idx], connectionStatus: nextStatus };
+      await this.persist();
       return nextStatus;
     }
     return 'none';
   }
 
   async toggleFollowStudent(studentId: string): Promise<boolean> {
-    await new Promise((r) => setTimeout(r, 100));
+    await this.ready(80);
     const idx = this.students.findIndex((s) => s.id === studentId);
     if (idx !== -1) {
       const nextFollow = !this.students[idx].isFollowing;
       this.students[idx] = { ...this.students[idx], isFollowing: nextFollow };
+      await this.persist();
       return nextFollow;
     }
     return false;
   }
 
   async toggleBookmarkProject(projectId: string): Promise<boolean> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(100);
     const idx = this.projects.findIndex((p) => p.id === projectId);
     if (idx !== -1) {
       const nextBookmarked = !this.projects[idx].isBookmarked;
       this.projects[idx] = { ...this.projects[idx], isBookmarked: nextBookmarked };
+      await this.persist();
       return nextBookmarked;
     }
     return false;
   }
 
   async toggleCommunityMembership(communityId: string): Promise<boolean> {
-    await new Promise((r) => setTimeout(r, 150));
+    await this.ready(100);
     const idx = this.communities.findIndex((c) => c.id === communityId);
     if (idx !== -1) {
       const nextJoined = !this.communities[idx].isJoined;
@@ -195,6 +249,7 @@ class ExploreApiService {
         isJoined: nextJoined,
         memberCount: Math.max(0, this.communities[idx].memberCount + countDelta),
       };
+      await this.persist();
       return nextJoined;
     }
     return false;
@@ -203,25 +258,32 @@ class ExploreApiService {
   // ================= SEARCH HISTORY =================
 
   async getSearchHistory(): Promise<string[]> {
+    await this.ready(40);
     return [...this.searchHistory];
   }
 
   async addSearchHistory(term: string): Promise<string[]> {
+    await this.ready(20);
     const clean = term.trim();
     if (!clean) return this.searchHistory;
     this.searchHistory = [clean, ...this.searchHistory.filter((t) => t !== clean)].slice(
       0,
       8
     );
+    await this.persist();
     return [...this.searchHistory];
   }
 
   async clearSearchHistory(): Promise<void> {
+    await this.ready(20);
     this.searchHistory = [];
+    await this.persist();
   }
 
   async removeSearchHistoryItem(term: string): Promise<string[]> {
+    await this.ready(20);
     this.searchHistory = this.searchHistory.filter((t) => t !== term);
+    await this.persist();
     return [...this.searchHistory];
   }
 }

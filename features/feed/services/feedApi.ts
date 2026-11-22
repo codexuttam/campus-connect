@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Post,
   Story,
@@ -18,12 +19,22 @@ import {
   CURRENT_USER,
 } from './feedMockData';
 
+const FEED_STORAGE_KEY = 'campusconnect.feed.v1';
+const FEED_STORAGE_VERSION = 1;
+
+interface PersistedFeedState {
+  version: number;
+  posts: Post[];
+  stories: Story[];
+  comments: Record<string, Comment[]>;
+  suggestions: ConnectionSuggestion[];
+}
+
 /**
  * Feed API Client Layer
  *
- * Implements data operations for CampusConnect Home Feed.
- * Structured cleanly so that when production REST/GraphQL endpoints
- * are connected, only this file is modified.
+ * Implements data operations for CampusConnect Home Feed with AsyncStorage
+ * persistence and clean boundaries for production REST/GraphQL endpoints.
  */
 class FeedApiService {
   private posts: Post[] = [...INITIAL_POSTS];
@@ -31,6 +42,45 @@ class FeedApiService {
   private comments: Record<string, Comment[]> = { ...INITIAL_COMMENTS };
   private suggestions: ConnectionSuggestion[] = [...INITIAL_SUGGESTIONS];
   private trending: TrendingTopic[] = [...INITIAL_TRENDING];
+  private hydration: Promise<void> | null = null;
+
+  private async ready(latencyMs = 150): Promise<void> {
+    if (!this.hydration) {
+      this.hydration = this.hydrate();
+    }
+    await this.hydration;
+    await new Promise((resolve) => setTimeout(resolve, latencyMs));
+  }
+
+  private async hydrate(): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem(FEED_STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw) as PersistedFeedState;
+      if (state.version !== FEED_STORAGE_VERSION) return;
+      this.posts = state.posts;
+      this.stories = state.stories;
+      this.comments = state.comments;
+      this.suggestions = state.suggestions;
+    } catch {
+      // Fall back to seed data
+    }
+  }
+
+  private async persist(): Promise<void> {
+    try {
+      const state: PersistedFeedState = {
+        version: FEED_STORAGE_VERSION,
+        posts: this.posts,
+        stories: this.stories,
+        comments: this.comments,
+        suggestions: this.suggestions,
+      };
+      await AsyncStorage.setItem(FEED_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Best-effort persistence
+    }
+  }
 
   // ================= FEED OPERATIONS =================
 
@@ -42,8 +92,7 @@ class FeedApiService {
   }): Promise<{ posts: Post[]; hasMore: boolean; total: number }> {
     const { page = 1, pageSize = 10, filter = 'for-you', category = 'all' } = params;
 
-    // Simulate minor asynchronous network latency
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await this.ready(180);
 
     let filtered = [...this.posts];
 
@@ -70,13 +119,13 @@ class FeedApiService {
   }
 
   async fetchPostById(id: string): Promise<Post | null> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(100);
     const found = this.posts.find((p) => p.id === id);
     return found ? { ...found } : null;
   }
 
   async createPost(payload: CreatePostPayload, authorOverride?: UserSummary): Promise<Post> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await this.ready(200);
 
     const author = authorOverride || CURRENT_USER;
 
@@ -101,18 +150,21 @@ class FeedApiService {
 
     this.posts = [newPost, ...this.posts];
     this.comments[newPost.id] = [];
+    await this.persist();
 
     return newPost;
   }
 
   async deletePost(postId: string): Promise<boolean> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(120);
     this.posts = this.posts.filter((p) => p.id !== postId);
     delete this.comments[postId];
+    await this.persist();
     return true;
   }
 
   async toggleLike(postId: string): Promise<{ isLiked: boolean; likesCount: number }> {
+    await this.ready(50);
     const postIndex = this.posts.findIndex((p) => p.id === postId);
     if (postIndex === -1) {
       throw new Error('Post not found');
@@ -127,11 +179,13 @@ class FeedApiService {
       isLiked: willLike,
       likesCount: newLikesCount,
     };
+    await this.persist();
 
     return { isLiked: willLike, likesCount: newLikesCount };
   }
 
   async toggleSave(postId: string): Promise<{ isSaved: boolean }> {
+    await this.ready(50);
     const postIndex = this.posts.findIndex((p) => p.id === postId);
     if (postIndex === -1) {
       throw new Error('Post not found');
@@ -144,6 +198,7 @@ class FeedApiService {
       ...post,
       isSaved: willSave,
     };
+    await this.persist();
 
     return { isSaved: willSave };
   }
@@ -151,7 +206,7 @@ class FeedApiService {
   // ================= COMMENTS OPERATIONS =================
 
   async fetchComments(postId: string): Promise<Comment[]> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(100);
     return [...(this.comments[postId] || [])];
   }
 
@@ -159,7 +214,7 @@ class FeedApiService {
     payload: CreateCommentPayload,
     authorOverride?: UserSummary
   ): Promise<Comment> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await this.ready(150);
 
     const author = authorOverride || CURRENT_USER;
 
@@ -189,11 +244,12 @@ class FeedApiService {
       };
     }
 
+    await this.persist();
     return newComment;
   }
 
   async deleteComment(postId: string, commentId: string): Promise<boolean> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(100);
 
     if (this.comments[postId]) {
       this.comments[postId] = this.comments[postId].filter((c) => c.id !== commentId);
@@ -205,13 +261,14 @@ class FeedApiService {
           commentsCount: Math.max(0, this.posts[postIndex].commentsCount - 1),
         };
       }
+      await this.persist();
     }
 
     return true;
   }
 
   async reportPost(postId: string, reason: string): Promise<boolean> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await this.ready(150);
     // Telemetry / report queue in production
     return true;
   }
@@ -219,17 +276,19 @@ class FeedApiService {
   // ================= STORIES / UPDATES OPERATIONS =================
 
   async fetchStories(): Promise<Story[]> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(100);
     return [...this.stories];
   }
 
   async recordStoryView(storyId: string): Promise<boolean> {
+    await this.ready(40);
     const idx = this.stories.findIndex((s) => s.id === storyId);
     if (idx !== -1) {
       this.stories[idx] = {
         ...this.stories[idx],
         isViewed: true,
       };
+      await this.persist();
     }
     return true;
   }
@@ -237,11 +296,12 @@ class FeedApiService {
   // ================= SUGGESTIONS & TRENDING =================
 
   async fetchSuggestedConnections(): Promise<ConnectionSuggestion[]> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(100);
     return [...this.suggestions];
   }
 
   async toggleConnect(suggestionId: string): Promise<boolean> {
+    await this.ready(50);
     const idx = this.suggestions.findIndex((s) => s.id === suggestionId);
     if (idx !== -1) {
       const current = this.suggestions[idx].isConnected;
@@ -249,13 +309,14 @@ class FeedApiService {
         ...this.suggestions[idx],
         isConnected: !current,
       };
+      await this.persist();
       return !current;
     }
     return false;
   }
 
   async fetchTrendingTopics(): Promise<TrendingTopic[]> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.ready(100);
     return [...this.trending];
   }
 }
