@@ -1,88 +1,132 @@
 import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Bell, ShoppingBag } from 'lucide-react-native';
+import {
+  Search,
+  Bell,
+  MessageSquare,
+  Shield,
+  Globe,
+} from 'lucide-react-native';
 import { AppText } from '../../../components/ui/AppText';
+import { AppAvatar } from '../../../components/ui/AppAvatar';
 import { IconButton } from '../../../components/ui/IconButton';
 import { theme } from '../../../theme';
 
 export interface HomeHeaderProps {
   campusName?: string;
+  userName?: string;
   onSearchPress: () => void;
   onNotificationsPress: () => void;
   onMarketplacePress?: () => void;
+  onMessagesPress?: () => void;
+  onAdminPress?: () => void;
+  onLandingPress?: () => void;
+  onProfilePress?: () => void;
   hasUnreadNotifications?: boolean;
 }
 
 export const HomeHeader: React.FC<HomeHeaderProps> = ({
-  campusName = 'Oxford · The Yard',
+  campusName = 'Noida International University',
+  userName = 'Uttamraj Singh',
   onSearchPress,
   onNotificationsPress,
-  onMarketplacePress,
+  onMessagesPress,
+  onAdminPress,
+  onLandingPress,
+  onProfilePress,
   hasUnreadNotifications = true,
 }) => {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 768;
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 10) }]}>
       <View style={styles.content}>
-        {/* Left: Brand Wordmark & Campus Context */}
+        {/* Left: Diamond Emblem & NIU Connect Wordmark */}
         <View style={styles.brandCol}>
           <View style={styles.brandRow}>
-            <View style={styles.logoBadge}>
-              <AppText variant="captionMedium" style={styles.logoText}>
-                CC
+            <View style={styles.diamondOuter}>
+              <View style={styles.diamondInner} />
+            </View>
+            <View>
+              <AppText variant="h2" serif color="primary" style={styles.brandTitle}>
+                NIU Connect
+              </AppText>
+              <AppText variant="caption" color="secondary" numberOfLines={1} style={styles.contextText}>
+                {campusName}
               </AppText>
             </View>
-            <AppText variant="h2" serif color="primary" style={styles.brandTitle}>
-              CampusConnect
-            </AppText>
-          </View>
-          <View style={styles.contextRow}>
-            <View style={styles.contextDot} />
-            <AppText variant="caption" color="secondary" numberOfLines={1} style={styles.contextText}>
-              {campusName}
-            </AppText>
           </View>
         </View>
 
-        {/* Right: Marketplace, Search & Notifications */}
+        {/* Center Search Pill on Desktop / Tablet */}
+        {isWide && (
+          <Pressable
+            onPress={onSearchPress}
+            style={styles.desktopSearchPill}
+            accessibilityRole="button"
+            accessibilityLabel="Search for students, events, communities, books"
+          >
+            <Search size={15} color={theme.colors.textMuted} />
+            <AppText variant="caption" color="muted" style={styles.desktopSearchText}>
+              Search for students, events, communities, books...
+            </AppText>
+          </Pressable>
+        )}
+
+        {/* Right: Quick Portal Switchers, Search, Notifications & Profile */}
         <View style={styles.actionsRow}>
-          {onMarketplacePress && (
+          {onLandingPress && (
+            <Pressable
+              onPress={onLandingPress}
+              style={styles.portalPill}
+              accessibilityRole="button"
+              accessibilityLabel="Open Public Website"
+            >
+              <Globe size={13} color={theme.colors.maroon} />
+              <AppText variant="captionMedium" style={styles.portalPillText}>
+                Public Site
+              </AppText>
+            </Pressable>
+          )}
+
+          {onAdminPress && (
+            <Pressable
+              onPress={onAdminPress}
+              style={[styles.portalPill, styles.adminPill]}
+              accessibilityRole="button"
+              accessibilityLabel="Open Admin Portal"
+            >
+              <Shield size={13} color="#FFFFFF" />
+              <AppText variant="captionMedium" style={styles.adminPillText}>
+                Admin
+              </AppText>
+            </Pressable>
+          )}
+
+          {!isWide && (
             <IconButton
               icon={
-                <ShoppingBag
-                  size={theme.icons.sizes.header}
-                  color={theme.colors.maroon}
+                <Search
+                  size={18}
+                  color={theme.colors.textPrimary}
                   strokeWidth={theme.icons.strokeWidth.default}
                 />
               }
               variant="surface"
               size="sm"
-              onPress={onMarketplacePress}
-              accessibilityLabel="Open campus marketplace"
+              onPress={onSearchPress}
+              accessibilityLabel="Search NIU Connect"
             />
           )}
-
-          <IconButton
-            icon={
-              <Search
-                size={theme.icons.sizes.header}
-                color={theme.colors.textPrimary}
-                strokeWidth={theme.icons.strokeWidth.default}
-              />
-            }
-            variant="surface"
-            size="sm"
-            onPress={onSearchPress}
-            accessibilityLabel="Search campus directory and discussions"
-          />
 
           <View style={styles.bellWrapper}>
             <IconButton
               icon={
                 <Bell
-                  size={theme.icons.sizes.header}
+                  size={18}
                   color={theme.colors.textPrimary}
                   strokeWidth={theme.icons.strokeWidth.default}
                 />
@@ -94,6 +138,32 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
             />
             {hasUnreadNotifications ? <View style={styles.notificationDot} /> : null}
           </View>
+
+          {onMessagesPress && isWide && (
+            <IconButton
+              icon={
+                <MessageSquare
+                  size={18}
+                  color={theme.colors.textPrimary}
+                  strokeWidth={theme.icons.strokeWidth.default}
+                />
+              }
+              variant="surface"
+              size="sm"
+              onPress={onMessagesPress}
+              accessibilityLabel="Direct Messages"
+            />
+          )}
+
+          {onProfilePress && (
+            <Pressable onPress={onProfilePress} hitSlop={6}>
+              <AppAvatar
+                name={userName}
+                size="sm"
+                style={{ backgroundColor: theme.colors.maroon }}
+              />
+            </Pressable>
+          )}
         </View>
       </View>
     </View>
@@ -102,61 +172,94 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderSubtle,
-    paddingBottom: theme.spacing.sm,
+    borderBottomColor: theme.colors.border,
+    paddingBottom: 10,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.screenPadding,
+    gap: 12,
   },
   brandCol: {
-    flex: 1,
+    flexShrink: 0,
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
-  logoBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: theme.radius.xs,
+  diamondOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 5,
     backgroundColor: theme.colors.maroon,
+    transform: [{ rotate: '45deg' }],
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoText: {
-    color: theme.colors.textInverse,
-    fontFamily: theme.fontFamilies.serif.bold,
-    fontSize: 12,
+  diamondInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
   },
   brandTitle: {
     letterSpacing: -0.3,
-  },
-  contextRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 2,
-  },
-  contextDot: {
-    width: 5,
-    height: 5,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.olive,
+    fontSize: 19,
+    lineHeight: 22,
+    color: theme.colors.maroon,
   },
   contextText: {
-    fontSize: 11,
+    fontSize: 10.5,
     letterSpacing: 0.2,
+  },
+  desktopSearchPill: {
+    flex: 1,
+    maxWidth: 420,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 14,
+    height: 36,
+  },
+  desktopSearchText: {
+    fontSize: 12.5,
   },
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  portalPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.maroonLight,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  portalPillText: {
+    color: theme.colors.maroon,
+    fontSize: 11,
+  },
+  adminPill: {
+    backgroundColor: theme.colors.maroon,
+    borderColor: theme.colors.maroon,
+  },
+  adminPillText: {
+    color: '#FFFFFF',
+    fontSize: 11,
   },
   bellWrapper: {
     position: 'relative',
@@ -167,10 +270,7 @@ const styles = StyleSheet.create({
     right: 5,
     width: 7,
     height: 7,
-    borderRadius: theme.radius.full,
+    borderRadius: 3.5,
     backgroundColor: theme.colors.maroon,
-    borderWidth: 1,
-    borderColor: theme.colors.background,
   },
 });
-
