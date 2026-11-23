@@ -20,7 +20,7 @@ import {
 } from './feedMockData';
 
 const FEED_STORAGE_KEY = 'campusconnect.feed.v1';
-const FEED_STORAGE_VERSION = 1;
+const FEED_STORAGE_VERSION = 2;
 
 interface PersistedFeedState {
   version: number;

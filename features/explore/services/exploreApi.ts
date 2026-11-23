@@ -16,7 +16,7 @@ import { INITIAL_POSTS } from '../../feed/services/feedMockData';
 import { Post } from '../../feed/types';
 
 const EXPLORE_STORAGE_KEY = 'campusconnect.explore.v1';
-const EXPLORE_STORAGE_VERSION = 1;
+const EXPLORE_STORAGE_VERSION = 2;
 
 interface PersistedExploreState {
   version: number;

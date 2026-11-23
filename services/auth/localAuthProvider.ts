@@ -59,17 +59,17 @@ export class LocalAuthProvider implements IAuthService {
       };
     }
 
-    // Default mock user profile for local login testing
+    // Default mock user profile for local login testing (NIU Connect)
     const defaultUser: UserProfile = {
       id: 'usr_' + Math.random().toString(36).substring(2, 9),
       email,
-      fullName: 'Julian Vance',
-      collegeId: 'oxford',
-      collegeName: 'University of Oxford',
-      collegeDomain: 'ox.ac.uk',
-      institutionalEmail: 'julian.vance@ox.ac.uk',
-      courseOrBranch: 'Computer Science & Philosophy',
-      graduationYear: '2026',
+      fullName: 'Uttamraj Singh',
+      collegeId: 'niu',
+      collegeName: 'Noida International University',
+      collegeDomain: 'niu.edu.in',
+      institutionalEmail: 'uttamraj.singh@niu.edu.in',
+      courseOrBranch: '3rd Year • CSE (AI/ML) • Section C',
+      graduationYear: '2027',
       collegeVerificationStatus: 'verified',
       authStatus: 'fully_onboarded',
       createdAt: new Date().toISOString(),

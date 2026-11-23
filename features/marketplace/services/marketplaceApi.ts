@@ -14,7 +14,7 @@ import { UserProfile } from '../../../types/auth';
 import { MARKETPLACE_CURRENCY } from '../utils/formatters';
 
 const STORAGE_KEY = 'campusconnect.marketplace.v1';
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
 
 interface PersistedMarketplaceState {
   version: number;

@@ -9,7 +9,7 @@ import {
  * Single source of truth for the marketplace currency symbol.
  * Change this one value (e.g. to '₹') to switch the whole marketplace.
  */
-export const MARKETPLACE_CURRENCY = '$';
+export const MARKETPLACE_CURRENCY = '₹';
 
 /** Formats a plain amount with the marketplace currency, e.g. $1,200 */
 export function formatAmount(amount: number): string {
