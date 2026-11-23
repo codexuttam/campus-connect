@@ -8,6 +8,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -27,7 +28,7 @@ import {
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { theme } from '../../theme';
 
-const CHATS_STORAGE_KEY = 'campusconnect.chats.v1';
+const CHATS_STORAGE_KEY = 'campusconnect.chats.v2';
 
 interface ChatMessage {
   id: string;
@@ -55,15 +56,15 @@ interface ChatThread {
 const INITIAL_THREADS: ChatThread[] = [
   {
     id: 'thread-marketplace-1',
-    peerName: 'Alyssa Vance',
-    peerRole: 'Biomedical Sciences • Verified',
+    peerName: 'Rohan Verma',
+    peerRole: '2nd Year • IT • NIU-25-15021',
     category: 'marketplace',
     unreadCount: 1,
     updatedAt: '10m',
     listingContext: {
       listingId: 'listing-1',
-      listingTitle: 'Campbell Biology (12th Edition) + Study Guide',
-      listingPrice: '$45',
+      listingTitle: 'DBMS (Korth) – 7th Edition + Solved Semester Notes',
+      listingPrice: '₹250',
       listingThumbnail:
         'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80',
     },
@@ -71,15 +72,15 @@ const INITIAL_THREADS: ChatThread[] = [
       {
         id: 'm-1',
         sender: 'peer',
-        text: 'Hi! Yes, the Campbell Biology textbook and unused access card are still available. I can meet at the Radcliffe Science Library steps.',
+        text: 'Hi Uttamraj! Yes, the DBMS Korth 7th Edition textbook and solved PYQ notes are still available. We can meet at the NIU Central Library steps at 2 PM.',
         timestamp: '10:42 AM',
       },
     ],
   },
   {
-    id: 'thread-arch-26',
-    peerName: "Architecture Cohort '26",
-    peerRole: 'Academic Study Group • 18 members',
+    id: 'thread-codesprint-26',
+    peerName: 'NIU Coding Club',
+    peerRole: "NIU CodeSprint '26 • Organizer Desk",
     category: 'academic',
     unreadCount: 1,
     updatedAt: '12m',
@@ -87,36 +88,36 @@ const INITIAL_THREADS: ChatThread[] = [
       {
         id: 'm-2',
         sender: 'peer',
-        text: 'Critique sessions rescheduled to Studio 4B at 3:00 PM today.',
+        text: 'Team NIU Neural Mavericks is shortlisted for the Generative AI track! Check-in opens at 8:30 AM in the Main Auditorium.',
         timestamp: '10:30 AM',
       },
     ],
   },
   {
-    id: 'thread-robotics',
-    peerName: 'Marcus Chen',
-    peerRole: 'Engineering Science • Verified',
+    id: 'thread-sneha',
+    peerName: 'Sneha Patil',
+    peerRole: '3rd Year • CSE (AI/ML) • NIU-24-14876',
     category: 'marketplace',
     unreadCount: 0,
     updatedAt: '2h',
     listingContext: {
-      listingId: 'listing-3',
-      listingTitle: 'Keychron K2 Wireless Mechanical Keyboard',
-      listingPrice: '$55',
+      listingId: 'listing-2',
+      listingTitle: 'Machine Learning by Andrew Ng & Deep Learning Notes',
+      listingPrice: '₹450',
       listingThumbnail:
-        'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1532012164546-f432f2e37b73?auto=format&fit=crop&w=400&q=80',
     },
     messages: [
       {
         id: 'm-3',
         sender: 'me',
-        text: 'Hey Marcus, does the Keychron come with the Mac keycaps?',
+        text: 'Hey Sneha, does this include the Transformer & CNN derivation sheets?',
         timestamp: 'Yesterday',
       },
       {
         id: 'm-4',
         sender: 'peer',
-        text: 'Yes! Both Mac and Windows keycaps plus the braided USB-C cable are in the box.',
+        text: 'Yes! All 6 modules plus the CSE (AI/ML) lab notebooks are bound together.',
         timestamp: 'Yesterday',
       },
     ],
@@ -124,13 +125,16 @@ const INITIAL_THREADS: ChatThread[] = [
 ];
 
 const QUICK_REPLIES = [
-  'Is this still available?',
-  'Can we meet at the Main Library?',
-  'Can I inspect it on campus today?',
+  'Is this book still available?',
+  'Can we meet at NIU Central Library?',
+  'Can I inspect it after the 2 PM lecture?',
 ];
 
 export default function ChatsScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isTwoPanel = width >= 820;
+
   const {
     listingId,
     listingTitle,
@@ -149,11 +153,12 @@ export default function ChatsScreen() {
 
   const [threads, setThreads] = useState<ChatThread[]>(INITIAL_THREADS);
   const [filterTab, setFilterTab] = useState<'all' | 'marketplace' | 'academic'>('all');
-  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(
+    isTwoPanel ? INITIAL_THREADS[0].id : null
+  );
   const [draftText, setDraftText] = useState('');
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate persisted threads
   useEffect(() => {
     AsyncStorage.getItem(CHATS_STORAGE_KEY)
       .then((raw) => {
@@ -173,14 +178,11 @@ export default function ChatsScreen() {
     AsyncStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(next)).catch(() => {});
   };
 
-  // When navigated from a Marketplace listing, find or create its conversation thread
   useEffect(() => {
     if (!hydrated || !listingId) return;
 
     setThreads((prev) => {
-      const existing = prev.find(
-        (t) => t.listingContext?.listingId === listingId
-      );
+      const existing = prev.find((t) => t.listingContext?.listingId === listingId);
       if (existing) {
         setActiveThreadId(existing.id);
         return prev;
@@ -189,15 +191,15 @@ export default function ChatsScreen() {
       const newThreadId = `thread-listing-${listingId}`;
       const newThread: ChatThread = {
         id: newThreadId,
-        peerName: sellerName || 'Campus Seller',
-        peerRole: `Verified Student • Seller (${sellerId || 'campus'})`,
+        peerName: sellerName || 'NIU Student Seller',
+        peerRole: `Verified NIU Student • (${sellerId || 'NIU'})`,
         category: 'marketplace',
         unreadCount: 0,
         updatedAt: 'Just now',
         listingContext: {
           listingId,
-          listingTitle: listingTitle || `Campus Listing #${listingId.slice(-6)}`,
-          listingPrice: listingPrice || 'Campus Listing',
+          listingTitle: listingTitle || `Book Listing #${listingId.slice(-6)}`,
+          listingPrice: listingPrice || 'NIU Book Exchange',
           listingThumbnail,
         },
         messages: [
@@ -205,8 +207,8 @@ export default function ChatsScreen() {
             id: `msg-${Date.now()}`,
             sender: 'peer',
             text: `Hi! Feel free to ask any questions about "${
-              listingTitle || 'this item'
-            }" or suggest a campus meetup spot.`,
+              listingTitle || 'this book'
+            }" or suggest a pickup time at NIU Central Library.`,
             timestamp: 'Just now',
           },
         ],
@@ -220,8 +222,8 @@ export default function ChatsScreen() {
   }, [hydrated, listingId, listingTitle, listingPrice, listingThumbnail, sellerId, sellerName]);
 
   const activeThread = useMemo(
-    () => threads.find((t) => t.id === activeThreadId) || null,
-    [threads, activeThreadId]
+    () => threads.find((t) => t.id === activeThreadId) || (isTwoPanel ? threads[0] : null),
+    [threads, activeThreadId, isTwoPanel]
   );
 
   const filteredThreads = useMemo(() => {
@@ -231,9 +233,7 @@ export default function ChatsScreen() {
 
   const handleOpenThread = (threadId: string) => {
     setActiveThreadId(threadId);
-    const next = threads.map((t) =>
-      t.id === threadId ? { ...t, unreadCount: 0 } : t
-    );
+    const next = threads.map((t) => (t.id === threadId ? { ...t, unreadCount: 0 } : t));
     persistThreads(next);
   };
 
@@ -261,28 +261,134 @@ export default function ChatsScreen() {
     if (!textToSend) setDraftText('');
   };
 
-  // ================= ACTIVE CONVERSATION THREAD VIEW =================
-  if (activeThread) {
+  const renderThreadList = () => (
+    <View style={[styles.listPane, isTwoPanel && styles.listPaneDesktop]}>
+      <View style={styles.header}>
+        <View>
+          <AppText variant="captionMedium" color="secondary" style={styles.kicker}>
+            NIU DIRECT MESSAGES
+          </AppText>
+          <AppText variant="h1" serif color="primary">
+            Messages
+          </AppText>
+        </View>
+      </View>
+
+      <View style={styles.filterTabsRow}>
+        {(
+          [
+            { id: 'all', label: 'All' },
+            { id: 'marketplace', label: 'Book Exchange' },
+            { id: 'academic', label: 'Clubs & Teams' },
+          ] as const
+        ).map((tab) => {
+          const isSelected = filterTab === tab.id;
+          return (
+            <Pressable
+              key={tab.id}
+              onPress={() => setFilterTab(tab.id)}
+              style={[styles.filterChip, isSelected && styles.filterChipSelected]}
+            >
+              <AppText
+                variant="captionMedium"
+                style={isSelected ? styles.filterChipTextSelected : styles.filterChipText}
+              >
+                {tab.label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {filteredThreads.map((thread) => {
+          const lastMsg = thread.messages[thread.messages.length - 1];
+          const isSelected = activeThread?.id === thread.id && isTwoPanel;
+          return (
+            <Pressable
+              key={thread.id}
+              onPress={() => handleOpenThread(thread.id)}
+            >
+              <AppCard
+                variant="default"
+                padding="sm"
+                style={[
+                  styles.conversationCard,
+                  isSelected && styles.conversationCardSelected,
+                ]}
+              >
+                <View style={styles.chatRow}>
+                  <AppAvatar
+                    name={thread.peerName}
+                    size="md"
+                    style={{ backgroundColor: theme.colors.maroon }}
+                  />
+                  <View style={styles.chatInfo}>
+                    <View style={styles.chatTopRow}>
+                      <AppText variant="bodySmallMedium" color="primary" numberOfLines={1}>
+                        {thread.peerName}
+                      </AppText>
+                      <AppText variant="caption" color="muted">
+                        {thread.updatedAt}
+                      </AppText>
+                    </View>
+
+                    {thread.listingContext && (
+                      <View style={styles.inlineListingPill}>
+                        <ShoppingBag size={11} color={theme.colors.maroon} />
+                        <AppText
+                          variant="caption"
+                          color="primary"
+                          numberOfLines={1}
+                          style={styles.inlineListingText}
+                        >
+                          {thread.listingContext.listingTitle} • {thread.listingContext.listingPrice}
+                        </AppText>
+                      </View>
+                    )}
+
+                    <AppText variant="caption" color="secondary" numberOfLines={1}>
+                      {lastMsg?.sender === 'me' ? `You: ${lastMsg.text}` : lastMsg?.text}
+                    </AppText>
+                  </View>
+                  {thread.unreadCount > 0 && <View style={styles.unreadDot} />}
+                </View>
+              </AppCard>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+
+  const renderActiveThread = () => {
+    if (!activeThread) return null;
     return (
-      <ScreenContainer safeTop padded={false} style={styles.threadScreen}>
+      <View style={styles.threadScreen}>
         {/* Thread Header */}
         <View style={styles.threadHeader}>
-          <Pressable
-            onPress={() => setActiveThreadId(null)}
-            style={styles.backBtn}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Back to conversations"
-          >
-            <ArrowLeft size={20} color={theme.colors.textPrimary} />
-          </Pressable>
-          <AppAvatar name={activeThread.peerName} size="sm" />
+          {!isTwoPanel && (
+            <Pressable
+              onPress={() => setActiveThreadId(null)}
+              style={styles.backBtn}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Back to conversations"
+            >
+              <ArrowLeft size={20} color={theme.colors.textPrimary} />
+            </Pressable>
+          )}
+          <AppAvatar
+            name={activeThread.peerName}
+            size="sm"
+            style={{ backgroundColor: theme.colors.maroon }}
+          />
           <View style={styles.threadHeaderMeta}>
             <View style={styles.peerNameRow}>
               <AppText variant="bodySmallMedium" color="primary" numberOfLines={1}>
                 {activeThread.peerName}
               </AppText>
-              <CheckCircle2 size={12} color={theme.colors.olive} />
+              <CheckCircle2 size={12} color={theme.colors.maroon} />
             </View>
             <AppText variant="caption" color="secondary" numberOfLines={1}>
               {activeThread.peerRole}
@@ -290,7 +396,7 @@ export default function ChatsScreen() {
           </View>
         </View>
 
-        {/* Compact Listing Preview Card (Section 11 Requirement) */}
+        {/* Compact Listing Preview Card */}
         {activeThread.listingContext && (
           <Pressable
             onPress={() =>
@@ -397,7 +503,7 @@ export default function ChatsScreen() {
           <View style={styles.composerBar}>
             <TextInput
               style={styles.composerInput}
-              placeholder="Write a message..."
+              placeholder="Write a message to your NIU peer..."
               placeholderTextColor={theme.colors.textMuted}
               value={draftText}
               onChangeText={setDraftText}
@@ -414,115 +520,48 @@ export default function ChatsScreen() {
               accessibilityRole="button"
               accessibilityLabel="Send message"
             >
-              <Send size={16} color="#FBF7EF" />
+              <Send size={16} color="#FFFFFF" />
             </Pressable>
           </View>
         </KeyboardAvoidingView>
+      </View>
+    );
+  };
+
+  if (isTwoPanel) {
+    return (
+      <ScreenContainer safeTop padded={false} style={styles.twoPanelWrapper}>
+        {renderThreadList()}
+        {renderActiveThread()}
       </ScreenContainer>
     );
   }
 
-  // ================= CONVERSATION LIST VIEW =================
   return (
-    <ScreenContainer scrollable safeTop padded={false}>
-      <View style={styles.header}>
-        <View>
-          <AppText variant="captionMedium" color="secondary" style={styles.kicker}>
-            COMMUNICATIONS
-          </AppText>
-          <AppText variant="h1" serif color="primary">
-            Chats
-          </AppText>
-        </View>
-      </View>
-
-      {/* Category Filter Tabs */}
-      <View style={styles.filterTabsRow}>
-        {(
-          [
-            { id: 'all', label: 'All' },
-            { id: 'marketplace', label: 'Marketplace' },
-            { id: 'academic', label: 'Study & Clubs' },
-          ] as const
-        ).map((tab) => {
-          const isSelected = filterTab === tab.id;
-          return (
-            <Pressable
-              key={tab.id}
-              onPress={() => setFilterTab(tab.id)}
-              style={[styles.filterChip, isSelected && styles.filterChipSelected]}
-            >
-              <AppText
-                variant="captionMedium"
-                style={isSelected ? styles.filterChipTextSelected : styles.filterChipText}
-              >
-                {tab.label}
-              </AppText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={styles.content}>
-        {filteredThreads.map((thread) => {
-          const lastMsg = thread.messages[thread.messages.length - 1];
-          return (
-            <Pressable
-              key={thread.id}
-              onPress={() => handleOpenThread(thread.id)}
-            >
-              <AppCard variant="default" padding="sm" style={styles.conversationCard}>
-                <View style={styles.chatRow}>
-                  <AppAvatar name={thread.peerName} size="md" />
-                  <View style={styles.chatInfo}>
-                    <View style={styles.chatTopRow}>
-                      <AppText variant="bodySmallMedium" color="primary" numberOfLines={1}>
-                        {thread.peerName}
-                      </AppText>
-                      <AppText variant="caption" color="muted">
-                        {thread.updatedAt}
-                      </AppText>
-                    </View>
-
-                    {thread.listingContext && (
-                      <View style={styles.inlineListingPill}>
-                        <ShoppingBag size={11} color={theme.colors.maroon} />
-                        <AppText
-                          variant="caption"
-                          color="primary"
-                          numberOfLines={1}
-                          style={styles.inlineListingText}
-                        >
-                          {thread.listingContext.listingTitle} • {thread.listingContext.listingPrice}
-                        </AppText>
-                      </View>
-                    )}
-
-                    <AppText variant="caption" color="secondary" numberOfLines={1}>
-                      {lastMsg?.sender === 'me' ? `You: ${lastMsg.text}` : lastMsg?.text}
-                    </AppText>
-                  </View>
-                  {thread.unreadCount > 0 && <View style={styles.unreadDot} />}
-                </View>
-              </AppCard>
-            </Pressable>
-          );
-        })}
-
-        {filteredThreads.length === 0 && (
-          <AppCard variant="surface" padding="lg" style={styles.placeholderCard}>
-            <MessageSquare size={28} color={theme.colors.maroon} />
-            <AppText variant="bodyMedium" color="primary" style={{ marginTop: 8 }}>
-              No conversations in this tab
-            </AppText>
-          </AppCard>
-        )}
-      </View>
+    <ScreenContainer safeTop padded={false} style={{ flex: 1 }}>
+      {activeThreadId ? renderActiveThread() : renderThreadList()}
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  twoPanelWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: theme.colors.background,
+  },
+  listPane: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  listPaneDesktop: {
+    width: 350,
+    maxWidth: 370,
+    flex: undefined,
+    borderRightWidth: 1,
+    borderRightColor: theme.colors.border,
+    backgroundColor: theme.colors.card,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -542,7 +581,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.md,
   },
   filterChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 13,
     paddingVertical: 6,
     borderRadius: theme.radius.full,
     backgroundColor: theme.colors.surface,
@@ -557,7 +596,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   filterChipTextSelected: {
-    color: '#FBF7EF',
+    color: '#FFFFFF',
   },
   content: {
     paddingHorizontal: theme.spacing.screenPadding,
@@ -565,6 +604,10 @@ const styles = StyleSheet.create({
   },
   conversationCard: {
     marginBottom: theme.spacing.sm,
+  },
+  conversationCardSelected: {
+    borderColor: theme.colors.maroon,
+    backgroundColor: theme.colors.maroonLight,
   },
   chatRow: {
     flexDirection: 'row',
@@ -603,11 +646,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: theme.colors.maroon,
   },
-  placeholderCard: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xxl,
-  },
   threadScreen: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -639,7 +677,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: theme.spacing.screenPadding,
     paddingVertical: 9,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.maroonLight,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
@@ -691,7 +729,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   bubbleTextMe: {
-    color: '#FBF7EF',
+    color: '#FFFFFF',
   },
   bubbleTextPeer: {
     color: theme.colors.textPrimary,
@@ -701,7 +739,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   timestampMe: {
-    color: 'rgba(251, 247, 239, 0.75)',
+    color: 'rgba(255, 255, 255, 0.78)',
     textAlign: 'right',
   },
   timestampPeer: {
@@ -721,7 +759,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 5,
     borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -739,7 +777,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
     borderWidth: 1,
     borderColor: theme.colors.border,
     paddingHorizontal: 14,

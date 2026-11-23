@@ -15,7 +15,7 @@ export interface MarketplaceHeaderProps {
 }
 
 export const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({
-  title = 'Marketplace',
+  title = 'Book Exchange',
   showBack = false,
   onBack,
   showActions = true,
@@ -39,7 +39,7 @@ export const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({
         )}
         <View>
           <AppText variant="captionMedium" color="secondary" style={styles.kicker}>
-            CAMPUS DISCOVERY
+            NIU BOOK EXCHANGE & MARKETPLACE
           </AppText>
           <AppText variant="h1" serif color="primary" style={styles.title}>
             {title}
